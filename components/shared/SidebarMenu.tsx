@@ -3,12 +3,12 @@
 "use client";
 
 import { useState } from "react";
-import clsx from "clsx";
 import Image from "next/image";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import clsx from "clsx";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ChevronsLeft, ChevronsRight, CircleHelp } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { categories, categoriese, Category } from "@/constants/data";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -17,146 +17,52 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
-} from "../ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
+import { motion, AnimatePresence } from "framer-motion";
 
-import {
-  ActiveCategory,
-  Question,
-  questionCategories,
-  vehicleCategories,
-} from "@/constants/getdata";
-
-export default function ExamApp() {
-  const [selectedVehicle, setSelectedVehicle] = useState<string | null>(null);
-  const [selectedQuestionCategory, setSelectedQuestionCategory] = useState<
-    string | null
-  >(null);
-  const [activeCategory, setActiveCategory] = useState<ActiveCategory>({
-    id: 0,
-    name: "არჩეული კითხვები",
-    tickets: 0,
-    main: [],
-  });
-  const [selectedAnswers, setSelectedAnswers] = useState<
-    Record<number, number | null>
-  >({});
-  const [lockedQuestions, setLockedQuestions] = useState<
-    Record<number, boolean>
-  >({});
-  const [searchId, setSearchId] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+export default function SidebarMenu() {
+  const [selected, setSelected] = useState<string>(categoriese[0].id);
+  const selectedCategory = categoriese.find((c) => c.id === selected);
+  const [activeCategory, setActiveCategory] = useState<Category>(categories[0]);
+  const [selectedAnswers, setSelectedAnswers] = useState<{
+    [key: number]: number | null;
+  }>({});
+  const [lockedQuestions, setLockedQuestions] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const [searchId, setSearchId] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const questionsPerPage = 15;
 
-  const countGadjetOccurrences = (): Record<string, number> => {
-    const gadjetCount: Record<string, number> = {};
-    vehicleCategories.forEach((vehicle) => {
-      Object.values(vehicle.categoryMappings).forEach((category) => {
-        category.questions.forEach((question) => {
-          gadjetCount[question.gadjet] =
-            (gadjetCount[question.gadjet] || 0) + 1;
-        });
-      });
-    });
-    return gadjetCount;
-  };
-
-  const getAllQuestionsByGadjet = (gadjet: string): Question[] => {
-    const allQuestions: Question[] = [];
-    vehicleCategories.forEach((vehicle) => {
-      Object.values(vehicle.categoryMappings).forEach((category) => {
-        category.questions.forEach((question) => {
-          if (question.gadjet === gadjet) {
-            allQuestions.push(question);
-          }
-        });
-      });
-    });
-    return allQuestions;
-  };
-
-  const getQuestionsByCategoryAndGadjet = (
-    vehicleId: string,
-    categoryName: string
-  ): Question[] => {
-    const vehicle = vehicleCategories.find((v) => v.id === vehicleId);
-    if (!vehicle) return [];
-
-    const questions = vehicle.categoryMappings[categoryName]?.questions || [];
-    return questions.filter((q) => q.gadjet === vehicle.gadjet);
-  };
-
-  const handleVehicleSelect = (vehicleId: string) => {
-    const vehicle = vehicleCategories.find((v) => v.id === vehicleId);
-    if (!vehicle) return;
-
-    setSelectedVehicle(vehicleId);
-    setSelectedQuestionCategory(null); // Reset category selection
-    const gadjetCount = countGadjetOccurrences();
-    const questions = getAllQuestionsByGadjet(vehicle.gadjet).slice(
-      0,
-      gadjetCount[vehicle.gadjet]
-    );
-
-    setActiveCategory({
-      id: 0,
-      name: "არჩეული კითხვები",
-      tickets: questions.length,
-      main: questions,
-    });
-
-    setCurrentPage(1);
-    setSelectedAnswers({});
-    setLockedQuestions({});
-  };
-
-  const handleQuestionCategorySelect = (categoryName: string) => {
-    if (!selectedVehicle) {
-      alert("ჯერ აირჩიეთ კატეგორია სურათიდან!");
-      return;
-    }
-
-    setSelectedQuestionCategory(categoryName);
-    const questions = getQuestionsByCategoryAndGadjet(
-      selectedVehicle,
-      categoryName
-    );
-
-    setActiveCategory({
-      id: questionCategories.find((c) => c.name === categoryName)?.id || 0,
-      name: categoryName,
-      tickets: questions.length,
-      main: questions,
-    });
-
-    setCurrentPage(1);
-    setSelectedAnswers({});
-    setLockedQuestions({});
-  };
-
   const handleSearch = () => {
-    if (!searchId) return;
+    let foundQuestion = null;
+    let foundCategory = null;
 
-    for (const vehicle of vehicleCategories) {
-      for (const categoryName in vehicle.categoryMappings) {
-        const question = vehicle.categoryMappings[categoryName].questions.find(
-          (q) => q._id === Number(searchId)
-        );
-        if (question) {
-          setActiveCategory({
-            id: 0,
-            name: "ძებნის შედეგი",
-            tickets: 1,
-            main: [question],
-          });
-          setCurrentPage(1);
-          setSelectedAnswers({});
-          setLockedQuestions({});
-          return;
+    for (const category of categories) {
+      if (category.main) {
+        for (const question of category.main) {
+          if (question._id === Number(searchId)) {
+            foundQuestion = question;
+            foundCategory = category;
+            break;
+          }
         }
       }
+      if (foundQuestion) break;
     }
 
-    alert("ასეთი ID-ით ბილეთი ვერ მოიძებნა!");
+    if (foundQuestion && foundCategory) {
+      setActiveCategory({
+        ...foundCategory,
+        main: [foundQuestion],
+      });
+
+      setSelectedAnswers({});
+      setLockedQuestions({});
+      setCurrentPage(1);
+    } else {
+      alert("ასეთი ID-ით ბილეთი ვერ მოიძებნა!");
+    }
   };
 
   const handleAnswerClick = (
@@ -177,7 +83,29 @@ export default function ExamApp() {
     }));
   };
 
-  const filteredQuestions = activeCategory.main;
+  const handleCategoryClick = (categoryId: string) => {
+    setSelected(categoryId);
+
+    const selectedCategory = categoriese.find((c) => c.id === categoryId);
+    if (!selectedCategory) return;
+
+    const filteredQuestions = categories
+      .flatMap((category) => category.main || [])
+      .filter((question) => question.gadjet === selectedCategory.gadjet);
+
+    setActiveCategory({
+      id: 1,
+      name: selectedCategory.label,
+      main: filteredQuestions,
+      tickets: selectedCategory.tickets,
+    });
+
+    setCurrentPage(1);
+    setSelectedAnswers({});
+    setLockedQuestions({});
+  };
+
+  const filteredQuestions = activeCategory.main || [];
   const totalQuestions = filteredQuestions.length;
   const totalPages = Math.ceil(totalQuestions / questionsPerPage);
 
@@ -199,16 +127,21 @@ export default function ExamApp() {
     if (endPage - startPage + 1 < maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
-
     if (startPage > 1) {
       pages.push(1);
-      if (startPage > 2) pages.push("...");
+      if (startPage > 2) {
+        pages.push("...");
+      }
     }
 
-    for (let i = startPage; i <= endPage; i++) pages.push(i);
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
 
     if (endPage < totalPages) {
-      if (endPage < totalPages - 1) pages.push("...");
+      if (endPage < totalPages - 1) {
+        pages.push("...");
+      }
       pages.push(totalPages);
     }
 
@@ -236,86 +169,89 @@ export default function ExamApp() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <header className="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg">
-        <div className="flex flex-wrap md:flex-nowrap gap-x-2 gap-3 justify-center">
-          {vehicleCategories.map((category) => (
-            <motion.button
-              key={category.id}
-              onClick={() => handleVehicleSelect(category.id)}
-              className={clsx(
-                "flex flex-col items-center px-6 py-2 rounded-md transition select-none",
-                selectedVehicle === category.id
-                  ? "bg-gray-500 text-white shadow-md"
-                  : "bg-gray-200 hover:bg-gray-300"
-              )}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Image
-                src={category.icon}
-                alt={category.label}
-                width={40}
-                height={40}
-                className="w-10 h-10"
-              />
-              <span className="text-sm font-medium mt-1">{category.label}</span>
-            </motion.button>
-          ))}
+      <header>
+        <div className="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg">
+          <div className="flex flex-wrap md:flex-nowrap gap-x-2 gap-3 justify-center">
+            {categoriese.map((category) => (
+              <motion.button
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                className={clsx(
+                  "flex flex-col items-center px-6 py-2 rounded-md transition select-none",
+                  selected === category.id
+                    ? "bg-gray-500 text-white shadow-md"
+                    : "bg-gray-200 hover:bg-gray-300"
+                )}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Image
+                  src={category.icon}
+                  alt={category.label}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10"
+                />
+                <span className="text-sm font-medium mt-1">
+                  {category.label}
+                </span>
+              </motion.button>
+            ))}
+          </div>
         </div>
       </header>
-
       <div className="flex h-screen">
         <aside className="w-64 bg-white shadow-md h-screen overflow-y-auto flex-shrink-0">
           <div className="p-4 border-b">
-            <h2 className="text-md font-semibold text-center">
-              კითხვების კატეგორიები
-            </h2>
+            <h2 className="text-lg font-semibold">ყველა ბილეთი</h2>
           </div>
           <div className="p-2 pb-32">
             <ul>
-              {questionCategories.map((category) => (
+              {categories.map((category) => (
                 <motion.li
                   key={category.id}
-                  onClick={() => handleQuestionCategorySelect(category.name)}
+                  onClick={() => {
+                    setActiveCategory(category);
+                    setSelectedAnswers({});
+                    setLockedQuestions({});
+                    setCurrentPage(1);
+                  }}
                   className={clsx(
                     "p-2 cursor-pointer rounded-md transition flex justify-between select-none",
-                    selectedQuestionCategory === category.name
+                    activeCategory.id === category.id
                       ? "bg-gray-500 text-white mb-2"
                       : "hover:bg-stone-100 bg-gray-200 mb-2"
                   )}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span>{category.name}</span>
+                  <span>
+                    {category.id}. {category.name}
+                  </span>
+                  {category.isNew && (
+                    <span className="text-red-500 text-sm font-semibold">
+                      ახალი
+                    </span>
+                  )}
                 </motion.li>
               ))}
             </ul>
           </div>
         </aside>
-
         <div className="flex flex-col flex-grow">
           <main className="flex-1 mt-3 p-10">
             <div className="max-w-5xl">
-              <div className="mt-4 text-center">
-                <h2 className="text-lg font-bold">
-                  {selectedVehicle
-                    ? `${
-                        vehicleCategories.find((v) => v.id === selectedVehicle)
-                          ?.label
-                      } - ${activeCategory.name}`
-                    : "აირჩიეთ კატეგორია"}
-                </h2>
-                <p className="text-gray-600">
-                  {selectedVehicle
-                    ? `${
-                        vehicleCategories.find((v) => v.id === selectedVehicle)
-                          ?.gadjet
-                      } - სულ ბილეთი: ${activeCategory.tickets}`
-                    : "ჯერ არაფერია არჩეული"}
-                </p>
-              </div>
+              {selectedCategory && (
+                <div className="mt-4 text-center">
+                  <h2 className="text-lg font-bold">
+                    {selectedCategory.label} კატეგორია
+                  </h2>
+                  <p className="text-gray-600">
+                    სულ ბილეთები: {activeCategory.tickets}
+                  </p>
+                </div>
+              )}
             </div>
-
             <div className="flex items-center justify-between max-w-5xl mt-5">
               <div className="flex items-center gap-2">
                 <Button
@@ -341,7 +277,6 @@ export default function ExamApp() {
                   className="w-[250px]"
                   value={searchId}
                   onChange={(e) => setSearchId(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 />
                 <motion.button
                   onClick={handleSearch}
@@ -353,19 +288,12 @@ export default function ExamApp() {
                 </motion.button>
               </div>
             </div>
-
-            <div className="mt-6 space-y-6">
-              <AnimatePresence mode="wait">
-                {currentQuestions.map((item, questionIndex) => {
-                  const isLocked = lockedQuestions[questionIndex];
-                  const selectedAnswer = selectedAnswers[questionIndex];
-                  const correctAnswerIndex = item.answers.findIndex(
-                    (a) => a.isCorrect
-                  );
-
-                  return (
+            {currentQuestions.length > 0 && (
+              <div className="mt-6 space-y-6">
+                <AnimatePresence mode="wait">
+                  {currentQuestions.map((item, questionIndex) => (
                     <motion.div
-                      key={item._id}
+                      key={questionIndex}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -404,7 +332,7 @@ export default function ExamApp() {
                         <motion.div>
                           <Image
                             src={item.image}
-                            alt="question image"
+                            alt="image"
                             width={
                               item.image ===
                               "https://www.starti.ge/exam/shss.png"
@@ -433,37 +361,40 @@ export default function ExamApp() {
                       </p>
                       <ul className="mt-4 grid grid-cols-2 gap-2">
                         {item.answers.map((answer, answerIndex) => {
-                          const isSelected = selectedAnswer === answerIndex;
-                          const isCorrect = answer.isCorrect;
-                          const showCorrect =
-                            isLocked && answerIndex === correctAnswerIndex;
-
+                          const isSelected =
+                            selectedAnswers[questionIndex] === answerIndex;
+                          const correctAnswerIndex = item.answers.findIndex(
+                            (a) => a.isCorrect
+                          );
                           return (
                             <motion.li
                               key={answerIndex}
                               onClick={() =>
-                                !isLocked &&
                                 handleAnswerClick(
                                   questionIndex,
                                   answerIndex,
-                                  isCorrect
+                                  answer.isCorrect
                                 )
                               }
                               className={clsx(
-                                "flex items-center p-3 border rounded-md cursor-pointer transition font-semibold select-none text-lg",
-                                isLocked
+                                "flex items-center p-3 border rounded-md cursor-pointer transition font-semibold select-none",
+                                "text-lg",
+                                lockedQuestions[questionIndex]
                                   ? "cursor-not-allowed"
                                   : "hover:bg-gray-200",
-                                isSelected && isCorrect
+                                isSelected && answer.isCorrect
                                   ? "bg-green-500 text-white"
                                   : isSelected
                                   ? "bg-red-500 text-white"
-                                  : showCorrect
+                                  : "bg-gray-100",
+                                lockedQuestions[questionIndex] &&
+                                  answerIndex === correctAnswerIndex
                                   ? "bg-green-500 text-white"
-                                  : "bg-gray-100"
+                                  : "",
+                                "rounded-md"
                               )}
-                              whileHover={{ scale: isLocked ? 1 : 1.02 }}
-                              whileTap={{ scale: isLocked ? 1 : 0.98 }}
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
                             >
                               <span className="w-8 h-8 flex items-center justify-center bg-white text-gray-900 font-bold rounded-md mr-2">
                                 {answerIndex + 1}
@@ -474,28 +405,29 @@ export default function ExamApp() {
                         })}
                       </ul>
                     </motion.div>
-                  );
-                })}
-              </AnimatePresence>
-
-              <div className="flex items-center gap-2 mt-4">
-                <Button
-                  className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
-                  onClick={() => handlePageChange(1)}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronsLeft />
-                </Button>
-                {renderPageNumbers()}
-                <Button
-                  className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
-                  onClick={() => handlePageChange(totalPages)}
-                  disabled={currentPage === totalPages}
-                >
-                  <ChevronsRight />
-                </Button>
+                  ))}
+                </AnimatePresence>
+                <div>
+                  <div className="flex items-center gap-2 mt-4">
+                    <Button
+                      className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronsLeft />
+                    </Button>
+                    {renderPageNumbers()}
+                    <Button
+                      className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronsRight />
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </main>
         </div>
       </div>
