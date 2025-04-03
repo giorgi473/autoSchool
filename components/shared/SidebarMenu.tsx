@@ -3,12 +3,11 @@
 "use client";
 
 import { useState } from "react";
-import clsx from "clsx";
 import Image from "next/image";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
+import clsx from "clsx";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { ChevronsLeft, ChevronsRight, CircleHelp } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -17,7 +16,8 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
-} from "../ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   ActiveCategory,
