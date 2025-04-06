@@ -7,12 +7,7 @@ import Image from "next/image";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  CircleHelp,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronsLeft, ChevronsRight, CircleHelp } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -50,22 +45,9 @@ export default function ExamApp() {
   >({});
   const [searchId, setSearchId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const questionsPerPage = 20;
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowScrollTop(true);
-      } else {
-        setShowScrollTop(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
+  // გვერდის ჩატვირთვისას პირველი კატეგორიის კითხვების ავტომატური ჩვენება და ზევით გადახვევა
   useEffect(() => {
     if (!selectedVehicle) {
       const defaultVehicle = vehicleCategories[0];
@@ -81,6 +63,7 @@ export default function ExamApp() {
         tickets: questions.length,
         main: questions,
       });
+      // გვერდის ზევით გადახვევა ჩატვირთვისას
       window.scrollTo(0, 0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -222,13 +205,6 @@ export default function ExamApp() {
     }));
   };
 
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  };
-
   const filteredQuestions = activeCategory.main;
   const totalQuestions = filteredQuestions.length;
   const totalPages = Math.ceil(totalQuestions / questionsPerPage);
@@ -287,7 +263,6 @@ export default function ExamApp() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative"
     >
       <header className="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg">
         <div className="flex flex-wrap md:flex-nowrap gap-x-2 gap-3 justify-center">
@@ -316,6 +291,7 @@ export default function ExamApp() {
           ))}
         </div>
       </header>
+
       <div className="flex h-screen">
         <aside className="w-64 bg-white shadow-md h-screen overflow-y-auto flex-shrink-0">
           <div className="p-4 border-b">
@@ -344,6 +320,7 @@ export default function ExamApp() {
             </ul>
           </div>
         </aside>
+
         <div className="flex flex-col flex-grow">
           <main className="flex-1 mt-3 p-10">
             <div className="max-w-5xl">
@@ -366,6 +343,7 @@ export default function ExamApp() {
                 </p>
               </div>
             </div>
+
             <div className="flex items-center justify-between max-w-5xl mt-5">
               <div className="flex items-center gap-2">
                 <Button
@@ -403,6 +381,7 @@ export default function ExamApp() {
                 </motion.button>
               </div>
             </div>
+
             <div className="mt-6 space-y-6">
               <AnimatePresence mode="wait">
                 {currentQuestions.map((item, questionIndex) => {
@@ -443,7 +422,7 @@ export default function ExamApp() {
                                   #ID: {item._id}
                                   <AlertDialogCancel>x</AlertDialogCancel>
                                 </AlertDialogTitle>
-                                <AlertDialogDescription className="overflow-y-auto h-44">
+                                <AlertDialogDescription>
                                   {item.answeringQuestion}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
@@ -548,38 +527,6 @@ export default function ExamApp() {
           </main>
         </div>
       </div>
-      <AnimatePresence>
-        {showScrollTop && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed bottom-8 right-8 z-50"
-          >
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative"
-            >
-              <Button
-                onClick={scrollToTop}
-                className="bg-gradient-to-r from-green-500 to-teal-500 text-white p-4 rounded-full shadow-lg hover:from-green-600 hover:to-teal-600 transition-all duration-300 flex items-center justify-center"
-              >
-                <ChevronUp size={28} />
-                <motion.span
-                  initial={{ opacity: 0, x: -10 }}
-                  whileHover={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute right-14 bg-green-600 text-white text-sm font-medium px-2 py-1 rounded-md"
-                >
-                  ზევით
-                </motion.span>
-              </Button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }
