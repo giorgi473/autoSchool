@@ -2,13 +2,17 @@
 /* eslint-disable prefer-const */
 "use client";
 
-import { useState } from "react";
-import clsx from "clsx";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Input } from "../ui/input";
-import { Button } from "../ui/button";
-import { ChevronsLeft, ChevronsRight, CircleHelp } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import clsx from "clsx";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  CircleHelp,
+  ChevronUp,
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -17,7 +21,8 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
-} from "../ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
+import { motion, AnimatePresence } from "framer-motion";
 
 import {
   ActiveCategory,
@@ -45,7 +50,41 @@ export default function ExamApp() {
   >({});
   const [searchId, setSearchId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const questionsPerPage = 15;
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const questionsPerPage = 20;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowScrollTop(true);
+      } else {
+        setShowScrollTop(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedVehicle) {
+      const defaultVehicle = vehicleCategories[0];
+      setSelectedVehicle(defaultVehicle.id);
+      const gadjetCount = countGadjetOccurrences();
+      const questions = getAllQuestionsByGadjet(
+        defaultVehicle.gadjet,
+        true
+      ).slice(0, gadjetCount[defaultVehicle.gadjet]);
+      setActiveCategory({
+        id: 0,
+        name: "არჩეული კითხვები",
+        tickets: questions.length,
+        main: questions,
+      });
+      window.scrollTo(0, 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const countGadjetOccurrences = (): Record<string, number> => {
     const gadjetCount: Record<string, number> = {};
@@ -60,7 +99,10 @@ export default function ExamApp() {
     return gadjetCount;
   };
 
-  const getAllQuestionsByGadjet = (gadjet: string): Question[] => {
+  const getAllQuestionsByGadjet = (
+    gadjet: string,
+    sortById: boolean = false
+  ): Question[] => {
     const allQuestions: Question[] = [];
     vehicleCategories.forEach((vehicle) => {
       Object.values(vehicle.categoryMappings).forEach((category) => {
@@ -71,6 +113,9 @@ export default function ExamApp() {
         });
       });
     });
+    if (sortById) {
+      return allQuestions.sort((a, b) => a._id - b._id);
+    }
     return allQuestions;
   };
 
@@ -90,9 +135,9 @@ export default function ExamApp() {
     if (!vehicle) return;
 
     setSelectedVehicle(vehicleId);
-    setSelectedQuestionCategory(null); // Reset category selection
+    setSelectedQuestionCategory(null);
     const gadjetCount = countGadjetOccurrences();
-    const questions = getAllQuestionsByGadjet(vehicle.gadjet).slice(
+    const questions = getAllQuestionsByGadjet(vehicle.gadjet, true).slice(
       0,
       gadjetCount[vehicle.gadjet]
     );
@@ -115,18 +160,48 @@ export default function ExamApp() {
       return;
     }
 
-    if (foundQuestion && foundCategory) {
-      setActiveCategory({
-        ...foundCategory,
-        main: [foundQuestion],
-      });
+    setSelectedQuestionCategory(categoryName);
+    const questions = getQuestionsByCategoryAndGadjet(
+      selectedVehicle,
+      categoryName
+    );
 
-      setSelectedAnswers({});
-      setLockedQuestions({});
-      setCurrentPage(1);
-    } else {
-      alert("ასეთი ID-ით ბილეთი ვერ მოიძებნა!");
+    setActiveCategory({
+      id: questionCategories.find((c) => c.name === categoryName)?.id || 0,
+      name: categoryName,
+      tickets: questions.length,
+      main: questions,
+    });
+
+    setCurrentPage(1);
+    setSelectedAnswers({});
+    setLockedQuestions({});
+  };
+
+  const handleSearch = () => {
+    if (!searchId) return;
+
+    for (const vehicle of vehicleCategories) {
+      for (const categoryName in vehicle.categoryMappings) {
+        const question = vehicle.categoryMappings[categoryName].questions.find(
+          (q) => q._id === Number(searchId)
+        );
+        if (question) {
+          setActiveCategory({
+            id: 0,
+            name: "ძებნის შედეგი",
+            tickets: 1,
+            main: [question],
+          });
+          setCurrentPage(1);
+          setSelectedAnswers({});
+          setLockedQuestions({});
+          return;
+        }
+      }
     }
+
+    alert("ასეთი ID-ით ბილეთი ვერ მოიძებნა!");
   };
 
   const handleAnswerClick = (
@@ -154,29 +229,7 @@ export default function ExamApp() {
     });
   };
 
-  const handleCategoryClick = (categoryId: string) => {
-    setSelected(categoryId);
-
-    const selectedCategory = categoriese.find((c) => c.id === categoryId);
-    if (!selectedCategory) return;
-
-    const filteredQuestions = categories
-      .flatMap((category) => category.main || [])
-      .filter((question) => question.gadjet === selectedCategory.gadjet);
-
-    setActiveCategory({
-      id: 1,
-      name: selectedCategory.label,
-      main: filteredQuestions,
-      tickets: selectedCategory.tickets,
-    });
-
-    setCurrentPage(1);
-    setSelectedAnswers({});
-    setLockedQuestions({});
-  };
-
-  const filteredQuestions = activeCategory.main || [];
+  const filteredQuestions = activeCategory.main;
   const totalQuestions = filteredQuestions.length;
   const totalPages = Math.ceil(totalQuestions / questionsPerPage);
 
@@ -198,21 +251,16 @@ export default function ExamApp() {
     if (endPage - startPage + 1 < maxPagesToShow) {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
+
     if (startPage > 1) {
       pages.push(1);
-      if (startPage > 2) {
-        pages.push("...");
-      }
+      if (startPage > 2) pages.push("...");
     }
 
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+    for (let i = startPage; i <= endPage; i++) pages.push(i);
 
     if (endPage < totalPages) {
-      if (endPage < totalPages - 1) {
-        pages.push("...");
-      }
+      if (endPage < totalPages - 1) pages.push("...");
       pages.push(totalPages);
     }
 
@@ -241,89 +289,86 @@ export default function ExamApp() {
       transition={{ duration: 0.5 }}
       className="relative"
     >
-      <header>
-        <div className="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg">
-          <div className="flex flex-wrap md:flex-nowrap gap-x-2 gap-3 justify-center">
-            {categoriese.map((category) => (
-              <motion.button
-                key={category.id}
-                onClick={() => handleCategoryClick(category.id)}
-                className={clsx(
-                  "flex flex-col items-center px-6 py-2 rounded-md transition select-none",
-                  selected === category.id
-                    ? "bg-gray-500 text-white shadow-md"
-                    : "bg-gray-200 hover:bg-gray-300"
-                )}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Image
-                  src={category.icon}
-                  alt={category.label}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10"
-                />
-                <span className="text-sm font-medium mt-1">
-                  {category.label}
-                </span>
-              </motion.button>
-            ))}
-          </div>
+      <header className="flex flex-col items-center justify-center bg-gray-100 p-4 rounded-lg">
+        <div className="flex flex-wrap md:flex-nowrap gap-x-2 gap-3 justify-center">
+          {vehicleCategories.map((category) => (
+            <motion.button
+              key={category.id}
+              onClick={() => handleVehicleSelect(category.id)}
+              className={clsx(
+                "flex flex-col items-center px-6 py-2 rounded-md transition select-none",
+                selectedVehicle === category.id
+                  ? "bg-gray-500 text-white shadow-md"
+                  : "bg-gray-200 hover:bg-gray-300"
+              )}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Image
+                src={category.icon}
+                alt={category.label}
+                width={40}
+                height={40}
+                className="w-10 h-10"
+              />
+              <span className="text-sm font-medium mt-1">{category.label}</span>
+            </motion.button>
+          ))}
         </div>
       </header>
+
       <div className="flex h-screen">
         <aside className="w-64 bg-white shadow-md h-screen overflow-y-auto flex-shrink-0">
           <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">ყველა ბილეთი</h2>
+            <h2 className="text-md font-semibold text-center">
+              კითხვების კატეგორიები
+            </h2>
           </div>
           <div className="p-2 pb-32">
             <ul>
-              {categories.map((category) => (
+              {questionCategories.map((category) => (
                 <motion.li
                   key={category.id}
-                  onClick={() => {
-                    setActiveCategory(category);
-                    setSelectedAnswers({});
-                    setLockedQuestions({});
-                    setCurrentPage(1);
-                  }}
+                  onClick={() => handleQuestionCategorySelect(category.name)}
                   className={clsx(
                     "p-2 cursor-pointer rounded-md transition flex justify-between select-none",
-                    activeCategory.id === category.id
+                    selectedQuestionCategory === category.name
                       ? "bg-gray-500 text-white mb-2"
                       : "hover:bg-stone-100 bg-gray-200 mb-2"
                   )}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <span>
-                    {category.id}. {category.name}
-                  </span>
-                  {category.isNew && (
-                    <span className="text-red-500 text-sm font-semibold">
-                      ახალი
-                    </span>
-                  )}
+                  <span>{category.name}</span>
                 </motion.li>
               ))}
             </ul>
           </div>
         </aside>
+
         <div className="flex flex-col flex-grow">
           <main className="flex-1 mt-3 p-10">
             <div className="max-w-5xl">
-              {selectedCategory && (
-                <div className="mt-4 text-center">
-                  <h2 className="text-lg font-bold">
-                    {selectedCategory.label} კატეგორია
-                  </h2>
-                  <p className="text-gray-600">
-                    სულ ბილეთები: {activeCategory.tickets}
-                  </p>
-                </div>
-              )}
+              <div className="mt-4 text-center">
+                <h2 className="text-lg font-bold">
+                  {selectedVehicle
+                    ? `${
+                        vehicleCategories.find((v) => v.id === selectedVehicle)
+                          ?.label
+                      } - ${activeCategory.name}`
+                    : "აირჩიეთ კატეგორია"}
+                </h2>
+                <p className="text-gray-600">
+                  {selectedVehicle
+                    ? `${
+                        vehicleCategories.find((v) => v.id === selectedVehicle)
+                          ?.gadjet
+                      } - სულ ბილეთი: ${activeCategory.tickets}`
+                    : "ჯერ არაფერია არჩეული"}
+                </p>
+              </div>
             </div>
+
             <div className="flex items-center justify-between max-w-5xl mt-5">
               <div className="flex items-center gap-2">
                 <Button
@@ -349,6 +394,7 @@ export default function ExamApp() {
                   className="w-[250px]"
                   value={searchId}
                   onChange={(e) => setSearchId(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 />
                 <motion.button
                   onClick={handleSearch}
@@ -372,7 +418,7 @@ export default function ExamApp() {
 
                   return (
                     <motion.div
-                      key={questionIndex}
+                      key={item._id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -401,7 +447,7 @@ export default function ExamApp() {
                                   #ID: {item._id}
                                   <AlertDialogCancel>x</AlertDialogCancel>
                                 </AlertDialogTitle>
-                                <AlertDialogDescription className="overflow-y-auto h-44">
+                                <AlertDialogDescription>
                                   {item.answeringQuestion}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
@@ -411,7 +457,7 @@ export default function ExamApp() {
                         <motion.div>
                           <Image
                             src={item.image}
-                            alt="image"
+                            alt="question image"
                             width={
                               item.image ===
                               "https://www.starti.ge/exam/shss.png"
@@ -440,40 +486,37 @@ export default function ExamApp() {
                       </p>
                       <ul className="mt-4 grid grid-cols-2 gap-2">
                         {item.answers.map((answer, answerIndex) => {
-                          const isSelected =
-                            selectedAnswers[questionIndex] === answerIndex;
-                          const correctAnswerIndex = item.answers.findIndex(
-                            (a) => a.isCorrect
-                          );
+                          const isSelected = selectedAnswer === answerIndex;
+                          const isCorrect = answer.isCorrect;
+                          const showCorrect =
+                            isLocked && answerIndex === correctAnswerIndex;
+
                           return (
                             <motion.li
                               key={answerIndex}
                               onClick={() =>
+                                !isLocked &&
                                 handleAnswerClick(
                                   questionIndex,
                                   answerIndex,
-                                  answer.isCorrect
+                                  isCorrect
                                 )
                               }
                               className={clsx(
-                                "flex items-center p-3 border rounded-md cursor-pointer transition font-semibold select-none",
-                                "text-lg",
-                                lockedQuestions[questionIndex]
+                                "flex items-center p-3 border rounded-md cursor-pointer transition font-semibold select-none text-lg",
+                                isLocked
                                   ? "cursor-not-allowed"
                                   : "hover:bg-gray-200",
-                                isSelected && answer.isCorrect
+                                isSelected && isCorrect
                                   ? "bg-green-500 text-white"
                                   : isSelected
                                   ? "bg-red-500 text-white"
-                                  : "bg-gray-100",
-                                lockedQuestions[questionIndex] &&
-                                  answerIndex === correctAnswerIndex
+                                  : showCorrect
                                   ? "bg-green-500 text-white"
-                                  : "",
-                                "rounded-md"
+                                  : "bg-gray-100"
                               )}
-                              whileHover={{ scale: 1.02 }}
-                              whileTap={{ scale: 0.98 }}
+                              whileHover={{ scale: isLocked ? 1 : 1.02 }}
+                              whileTap={{ scale: isLocked ? 1 : 0.98 }}
                             >
                               <span className="w-8 h-8 flex items-center justify-center bg-white text-gray-900 font-bold rounded-md mr-2">
                                 {answerIndex + 1}
@@ -484,32 +527,33 @@ export default function ExamApp() {
                         })}
                       </ul>
                     </motion.div>
-                  ))}
-                </AnimatePresence>
-                <div>
-                  <div className="flex items-center gap-2 mt-4">
-                    <Button
-                      className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
-                      onClick={() => handlePageChange(1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronsLeft />
-                    </Button>
-                    {renderPageNumbers()}
-                    <Button
-                      className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
-                      onClick={() => handlePageChange(totalPages)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <ChevronsRight />
-                    </Button>
-                  </div>
-                </div>
+                  );
+                })}
+              </AnimatePresence>
+
+              <div className="flex items-center gap-2 mt-4">
+                <Button
+                  className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
+                  onClick={() => handlePageChange(1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronsLeft />
+                </Button>
+                {renderPageNumbers()}
+                <Button
+                  className="bg-green-500 text-white px-3 py-2 rounded-md disabled:opacity-50"
+                  onClick={() => handlePageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronsRight />
+                </Button>
               </div>
-            )}
+            </div>
           </main>
         </div>
       </div>
+
+      {/* Enhanced Scroll to Top Button */}
       <AnimatePresence>
         {showScrollTop && (
           <motion.div
