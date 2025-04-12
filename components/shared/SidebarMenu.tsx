@@ -46,10 +46,10 @@ export default function ExamApp() {
   });
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number | null>
-  >({});
+  >({}); // Changed to use question _id as key
   const [lockedQuestions, setLockedQuestions] = useState<
     Record<number, boolean>
-  >({});
+  >({}); // Changed to use question _id as key
   const [searchId, setSearchId] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -209,20 +209,20 @@ export default function ExamApp() {
   };
 
   const handleAnswerClick = (
-    questionIndex: number,
+    questionId: number, // Changed to questionId
     answerIndex: number,
     isCorrect: boolean
   ) => {
-    if (lockedQuestions[questionIndex]) return;
+    if (lockedQuestions[questionId]) return;
 
     setSelectedAnswers((prev) => ({
       ...prev,
-      [questionIndex]: answerIndex,
+      [questionId]: answerIndex,
     }));
 
     setLockedQuestions((prev) => ({
       ...prev,
-      [questionIndex]: true,
+      [questionId]: true,
     }));
   };
 
@@ -440,9 +440,9 @@ export default function ExamApp() {
 
               <div className="mt-6 space-y-6">
                 <AnimatePresence mode="wait">
-                  {currentQuestions.map((item, questionIndex) => {
-                    const isLocked = lockedQuestions[questionIndex];
-                    const selectedAnswer = selectedAnswers[questionIndex];
+                  {currentQuestions.map((item) => {
+                    const isLocked = lockedQuestions[item._id]; // Use _id
+                    const selectedAnswer = selectedAnswers[item._id]; // Use _id
                     const correctAnswerIndex = item.answers.findIndex(
                       (a) => a.isCorrect
                     );
@@ -515,7 +515,7 @@ export default function ExamApp() {
                         <p className="mt-4 text-base sm:text-lg font-semibold text-white text-center">
                           {item.desc}
                         </p>
-                        <ul className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <ul className="mt-4 flex flex-col sm:flex-row sm:flex-wrap gap-2">
                           {item.answers.map((answer, answerIndex) => {
                             const isSelected = selectedAnswer === answerIndex;
                             const isCorrect = answer.isCorrect;
@@ -528,13 +528,13 @@ export default function ExamApp() {
                                 onClick={() =>
                                   !isLocked &&
                                   handleAnswerClick(
-                                    questionIndex,
+                                    item._id, // Use _id
                                     answerIndex,
                                     isCorrect
                                   )
                                 }
                                 className={clsx(
-                                  "flex items-center p-3 border rounded-md cursor-pointer transition font-semibold select-none text-sm sm:text-lg",
+                                  "flex p-3 border rounded-md cursor-pointer transition font-semibold select-none text-sm sm:text-lg w-full sm:w-[calc(50%-0.5rem)]", // 50% width minus gap for two columns
                                   isLocked
                                     ? "cursor-not-allowed"
                                     : "hover:bg-gray-200",
@@ -546,13 +546,44 @@ export default function ExamApp() {
                                     ? "bg-green-500 text-white"
                                     : "bg-gray-100"
                                 )}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  minHeight: "60px", // Minimum height to avoid being too small
+                                }}
                                 whileHover={{ scale: isLocked ? 1 : 1.02 }}
                                 whileTap={{ scale: isLocked ? 1 : 0.98 }}
                               >
-                                <span className="w-8 h-8 flex items-center justify-center bg-white text-gray-900 font-bold rounded-md mr-2">
+                                <span
+                                  style={{
+                                    width: "40px",
+                                    height: "40px",
+                                    fontSize: "14px !important",
+                                    backgroundColor: "white",
+                                    color: "black",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    fontWeight: "bold",
+                                    fontFamily: "Arial, sans-serif",
+                                    borderRadius: "5px",
+                                    marginRight: "8px",
+                                    lineHeight: "30px",
+                                    flexShrink: 0, // Prevents the span from shrinking
+                                  }}
+                                >
                                   {answerIndex + 1}
                                 </span>
-                                {answer.text}
+                                <div
+                                  className="flex-1"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    whiteSpace: "normal", // Allows text to wrap
+                                  }}
+                                >
+                                  {answer.text}
+                                </div>
                               </motion.li>
                             );
                           })}
