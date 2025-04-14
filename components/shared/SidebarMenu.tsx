@@ -7,6 +7,7 @@ import Image from "next/image";
 import clsx from "clsx";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import {
   ChevronsLeft,
   ChevronsRight,
@@ -448,147 +449,152 @@ export default function ExamApp() {
                     );
 
                     return (
-                      <motion.div
-                        key={item._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="border rounded-lg p-2 sm:p-4 shadow-md bg-gray-700 max-w-full sm:max-w-5xl mx-auto"
-                      >
-                        <div className="relative group">
-                          <div className="absolute top-0 left-0 right-0 p-2 flex justify-between items-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                            <span className="bg-black rounded-md ring-2 ring-gray-800">
-                              <span className="p-1">
-                                <b>ID: {item._id}</b>
-                              </span>
-                            </span>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <span className="bg-gray-800 p-1 rounded-full cursor-pointer">
-                                  <CircleHelp
-                                    className="bg-black rounded-full"
-                                    size={22}
-                                  />
+                      <div key={item._id}>
+                        <motion.div
+                          // key={item._id}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -20 }}
+                          transition={{ duration: 0.3 }}
+                          className="border rounded-lg p-2 sm:p-2  shadow-md bg-gray-700 max-w-full sm:max-w-5xl mx-auto"
+                        >
+                          <div className="relative group">
+                            <div className="absolute top-0 left-0 right-0 p-2 flex justify-between items-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              <span className="bg-black rounded-md ring-2 ring-gray-800">
+                                <span className="p-1">
+                                  <b>ID: {item._id}</b>
                                 </span>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle className="flex items-center justify-between">
-                                    #ID: {item._id}
-                                    <AlertDialogCancel>x</AlertDialogCancel>
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    {item.answeringQuestion}
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                          <motion.div className="flex justify-center">
-                            <Image
-                              src={item.image}
-                              alt="question image"
-                              width={
-                                item.image ===
-                                "https://www.starti.ge/exam/shss.png"
-                                  ? 200
-                                  : 800
-                              }
-                              height={
-                                item.image ===
-                                "https://www.starti.ge/exam/shss.png"
-                                  ? 100
-                                  : 800
-                              }
-                              className={clsx(
-                                "border-none rounded-md border-gray-700 object-contain w-full",
-                                item.image ===
+                              </span>
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <span className="bg-gray-800 p-1 rounded-full cursor-pointer">
+                                    <CircleHelp
+                                      className="bg-black rounded-full"
+                                      size={22}
+                                    />
+                                  </span>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle className="flex items-center justify-between">
+                                      #ID: {item._id}
+                                      <AlertDialogCancel>x</AlertDialogCancel>
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      {item.answeringQuestion}
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                            <motion.div className="flex justify-center">
+                              <Image
+                                src={item.image}
+                                alt="question image"
+                                width={
+                                  item.image ===
                                   "https://www.starti.ge/exam/shss.png"
-                                  ? "max-w-[200px] h-[200px] mx-auto"
-                                  : "max-w-[600px] sm:max-w-[900px] lg:max-w-[1100px] h-auto"
-                              )}
-                              unoptimized
-                            />
-                          </motion.div>
-                        </div>
-                        <p className="mt-4 text-base sm:text-lg font-semibold text-white text-center">
-                          {item.desc}
-                        </p>
-                        <ul className="mt-4 flex flex-col sm:flex-row sm:flex-wrap gap-2">
-                          {item.answers.map((answer, answerIndex) => {
-                            const isSelected = selectedAnswer === answerIndex;
-                            const isCorrect = answer.isCorrect;
-                            const showCorrect =
-                              isLocked && answerIndex === correctAnswerIndex;
-
-                            return (
-                              <motion.li
-                                key={answerIndex}
-                                onClick={() =>
-                                  !isLocked &&
-                                  handleAnswerClick(
-                                    item._id, // Use _id
-                                    answerIndex,
-                                    isCorrect
-                                  )
+                                    ? 200
+                                    : 800
+                                }
+                                height={
+                                  item.image ===
+                                  "https://www.starti.ge/exam/shss.png"
+                                    ? 100
+                                    : 800
                                 }
                                 className={clsx(
-                                  "flex p-3 border rounded-md cursor-pointer transition font-semibold select-none text-sm sm:text-lg w-full sm:w-[calc(50%-0.5rem)]", // 50% width minus gap for two columns
-                                  isLocked
-                                    ? "cursor-not-allowed"
-                                    : "hover:bg-gray-200",
-                                  isSelected && isCorrect
-                                    ? "bg-green-500 text-white"
-                                    : isSelected
-                                    ? "bg-red-500 text-white"
-                                    : showCorrect
-                                    ? "bg-green-500 text-white"
-                                    : "bg-gray-100"
+                                  "border-none rounded-md border-gray-700 object-contain w-full",
+                                  item.image ===
+                                    "https://www.starti.ge/exam/shss.png"
+                                    ? "max-w-[200px] h-[200px] mx-auto"
+                                    : "max-w-[600px] sm:max-w-[900px] lg:max-w-[1100px] h-auto"
                                 )}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  minHeight: "60px", // Minimum height to avoid being too small
-                                }}
-                                whileHover={{ scale: isLocked ? 1 : 1.02 }}
-                                whileTap={{ scale: isLocked ? 1 : 0.98 }}
-                              >
-                                <span
+                                unoptimized
+                              />
+                            </motion.div>
+                          </div>
+                          <p className="mt-4 text-base sm:text-lg font-semibold text-white text-center">
+                            {item.desc}
+                          </p>
+                          <ul className="mt-4 flex flex-col sm:flex-row sm:flex-wrap gap-2">
+                            {item.answers.map((answer, answerIndex) => {
+                              const isSelected = selectedAnswer === answerIndex;
+                              const isCorrect = answer.isCorrect;
+                              const showCorrect =
+                                isLocked && answerIndex === correctAnswerIndex;
+
+                              return (
+                                <motion.li
+                                  key={answerIndex}
+                                  onClick={() =>
+                                    !isLocked &&
+                                    handleAnswerClick(
+                                      item._id, // Use _id
+                                      answerIndex,
+                                      isCorrect
+                                    )
+                                  }
+                                  className={clsx(
+                                    "flex p-3 border rounded-md cursor-pointer transition font-semibold select-none text-sm sm:text-lg w-full sm:w-[calc(50%-0.5rem)]", // 50% width minus gap for two columns
+                                    isLocked
+                                      ? "cursor-not-allowed"
+                                      : "hover:bg-gray-200",
+                                    isSelected && isCorrect
+                                      ? "bg-green-500 text-white"
+                                      : isSelected
+                                      ? "bg-red-500 text-white"
+                                      : showCorrect
+                                      ? "bg-green-500 text-white"
+                                      : "bg-gray-100"
+                                  )}
                                   style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    fontSize: "14px !important",
-                                    backgroundColor: "white",
-                                    color: "black",
                                     display: "flex",
                                     alignItems: "center",
-                                    justifyContent: "center",
-                                    fontWeight: "bold",
-                                    fontFamily: "Arial, sans-serif",
-                                    borderRadius: "5px",
-                                    marginRight: "8px",
-                                    lineHeight: "30px",
-                                    flexShrink: 0, // Prevents the span from shrinking
+                                    minHeight: "60px", // Minimum height to avoid being too small
                                   }}
+                                  whileHover={{ scale: isLocked ? 1 : 1.02 }}
+                                  whileTap={{ scale: isLocked ? 1 : 0.98 }}
                                 >
-                                  {answerIndex + 1}
-                                </span>
-                                <div
-                                  className="flex-1"
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    whiteSpace: "normal", // Allows text to wrap
-                                  }}
-                                >
-                                  {answer.text}
-                                </div>
-                              </motion.li>
-                            );
-                          })}
-                        </ul>
-                      </motion.div>
+                                  <span
+                                    style={{
+                                      width: "40px",
+                                      height: "40px",
+                                      fontSize: "14px !important",
+                                      backgroundColor: "white",
+                                      color: "black",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontWeight: "bold",
+                                      fontFamily: "Arial, sans-serif",
+                                      borderRadius: "5px",
+                                      marginRight: "8px",
+                                      lineHeight: "30px",
+                                      flexShrink: 0, // Prevents the span from shrinking
+                                    }}
+                                  >
+                                    {answerIndex + 1}
+                                  </span>
+                                  <div
+                                    className="flex-1"
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      whiteSpace: "normal", // Allows text to wrap
+                                    }}
+                                  >
+                                    {answer.text}
+                                  </div>
+                                </motion.li>
+                              );
+                            })}
+                          </ul>
+                        </motion.div>
+                        <div>
+                          <Separator className="my-10" />
+                        </div>
+                      </div>
                     );
                   })}
                 </AnimatePresence>
