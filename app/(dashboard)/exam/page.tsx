@@ -1,7 +1,11 @@
-import React from "react";
+import ExamPage from "@/components/modules/ExamPage";
 
 function page() {
-  return <div>page</div>;
+  return (
+    <div>
+      <ExamPage />
+    </div>
+  );
 }
 
 export default page;

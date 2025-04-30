@@ -5,8 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "www.starti.ge" },
-      // { protocol: "https", hostname: "avtoskola-varketilshi.ge" },
-      // { protocol: "https", hostname: "exam.avtoskola-varketilshi.ge" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
 };

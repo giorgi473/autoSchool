@@ -1,7 +1,11 @@
-import React from "react";
+import AboutUsPage from "@/components/modules/AboutUsPage";
 
 function page() {
-  return <div>page</div>;
+  return (
+    <div>
+      <AboutUsPage />
+    </div>
+  );
 }
 
 export default page;

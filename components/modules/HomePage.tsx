@@ -131,7 +131,6 @@ const HomePage: React.FC = () => {
           </p>
         </motion.div>
       </motion.div>
-
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -168,7 +167,6 @@ const HomePage: React.FC = () => {
           />
         </motion.div>
       </motion.div>
-
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -202,7 +200,6 @@ const HomePage: React.FC = () => {
           </p>
         </motion.div>
       </motion.div>
-
       <motion.div
         initial="hidden"
         whileInView="visible"

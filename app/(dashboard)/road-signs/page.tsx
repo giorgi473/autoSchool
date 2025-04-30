@@ -1,7 +1,11 @@
-import React from "react";
+import RoadSignsPage from "@/components/modules/RoadSignsPage";
 
 function page() {
-  return <div>page</div>;
+  return (
+    <div>
+      <RoadSignsPage />
+    </div>
+  );
 }
 
 export default page;
