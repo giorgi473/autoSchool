@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,110 +12,478 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { questionCategories, vehicleCategories } from "@/constants/getdata";
+import { useAppContext } from "@/app/context/AppContext";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import clsx from "clsx";
+import {
+  Question,
+  questionCategories,
+  vehicleCategories,
+} from "@/constants/getdata";
+
+// შიდა ინტერფეისი ჩვენებისთვის
+interface DisplayQuestion {
+  id: string;
+  text: string;
+  options: string[];
+  correctAnswer: string;
+  image: string;
+}
 
 const ExamPage: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("B, B1");
+  const {
+    showWhitePanel,
+    setShowWhitePanel,
+    selectedVehicleType,
+    setSelectedVehicleType,
+    isClientLoaded,
+  } = useAppContext();
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const savedVehicle = localStorage.getItem("selectedVehicleType");
+      return savedVehicle || selectedVehicleType || "B, B1";
+    }
+    return "B, B1";
+  });
   const [isSelectActive, setIsSelectActive] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false); // New loading state
-
-  // Get the selected vehicle category
-  const selectedVehicle = vehicleCategories.find(
-    (category) => category.label === selectedCategory
-  );
-  const selectedGadjet = selectedVehicle?.gadjet || ""; // The vehicle type (e.g., "ავტომობილი")
-
-  // State for checkbox statuses for each question category
+  const [loading, setLoading] = useState<boolean>(false);
   const [categoryCheckboxes, setCategoryCheckboxes] = useState<boolean[]>(
     Array(questionCategories.length).fill(true)
   );
+  const [allQuestions, setAllQuestions] = useState<DisplayQuestion[]>([]);
+  const [shuffledQuestionOrder, setShuffledQuestionOrder] = useState<number[]>(
+    []
+  );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [shownQuestionIds, setShownQuestionIds] = useState<string[]>([]);
+  const [currentQuestion, setCurrentQuestion] =
+    useState<DisplayQuestion | null>(null);
+  const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [answerSubmitted, setAnswerSubmitted] = useState<boolean>(false);
+  const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
+  const [timer, setTimer] = useState<number>(1800); // 30 წუთი = 1800 წამი
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [correctAnswersCount, setCorrectAnswersCount] = useState<number>(0);
+  const [incorrectAnswersCount, setIncorrectAnswersCount] = useState<number>(0);
+  const [showFailModal, setShowFailModal] = useState<boolean>(false);
+  const [autoNext, setAutoNext] = useState<boolean>(false);
 
-  // Handle Select open/close to toggle green background
-  const handleSelectOpen = () => {
-    setIsSelectActive(true);
+  // მასივის შემთხვევით გადალაგების ფუნქცია
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   };
 
-  const handleSelectClose = () => {
-    setIsSelectActive(false);
+  // ტაიმერის ეფექტი
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (showWhitePanel && timer > 0 && !showFailModal) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (timer === 0 && showWhitePanel && !showFailModal) {
+      console.log("ტაიმერი: დრო ამოიწურა!");
+      handleCloseExam();
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showWhitePanel, timer, showFailModal]);
+
+  const formatTimer = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
 
-  // Handle single master checkbox for all categories
+  // კატეგორიის განახლება
+  useEffect(() => {
+    if (selectedVehicleType && selectedVehicleType !== selectedCategory) {
+      console.log(
+        "AppContext selectedVehicleType განახლდა:",
+        selectedVehicleType
+      );
+      setSelectedCategory(selectedVehicleType);
+      setCategoryCheckboxes(Array(questionCategories.length).fill(true));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedVehicleType]);
+
+  // გამოცდის ჩატვირთვა
+  useEffect(() => {
+    if (showWhitePanel && isClientLoaded) {
+      loadQuestions();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, showWhitePanel, categoryCheckboxes, isClientLoaded]);
+
+  // გამოცდის მდგომარეობის განახლება
+  useEffect(() => {
+    if (showWhitePanel) {
+      document.body.classList.add("overflow-hidden");
+      setTimer(1800);
+      setCorrectAnswersCount(0);
+      setIncorrectAnswersCount(0);
+      setShowFailModal(false);
+    } else {
+      document.body.classList.remove("overflow-hidden");
+      setAllQuestions([]);
+      setShuffledQuestionOrder([]);
+      setShownQuestionIds([]);
+      setCurrentQuestion(null);
+      setShuffledOptions([]);
+      setSelectedAnswer(null);
+      setAnswerSubmitted(false);
+      setIsAnswerCorrect(null);
+      setCurrentQuestionIndex(0);
+      setCorrectAnswersCount(0);
+      setIncorrectAnswersCount(0);
+      setShowFailModal(false);
+      setCategoryCheckboxes(Array(questionCategories.length).fill(true));
+    }
+
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [showWhitePanel]);
+
+  // ოფციების გადალაგება
+  useEffect(() => {
+    if (currentQuestion && currentQuestion.options) {
+      setShuffledOptions(shuffleArray(currentQuestion.options));
+      setAnswerSubmitted(false);
+      setIsAnswerCorrect(null);
+      setSelectedAnswer(null);
+    } else {
+      setShuffledOptions([]);
+    }
+  }, [currentQuestion]);
+
+  // ჩექბოქსების მდგომარეობის მონიტორინგი
+  useEffect(() => {
+    console.log("categoryCheckboxes განახლდა:", categoryCheckboxes);
+  }, [categoryCheckboxes]);
+
+  const selectedVehicle = vehicleCategories.find(
+    (category) => category.label === selectedCategory
+  );
+  const selectedGadjet = selectedVehicle?.gadjet || "";
+
+  const loadQuestions = () => {
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      console.log("loadQuestions: არჩეული კატეგორია:", selectedCategory);
+      console.log("loadQuestions: არჩეული vehicle:", selectedVehicle);
+
+      if (!selectedVehicle) {
+        console.log("loadQuestions: vehicle არ მოიძებნა!");
+        setAllQuestions([]);
+        setCurrentQuestion(null);
+        setShuffledQuestionOrder([]);
+        setShownQuestionIds([]);
+        setErrorMessage("არჩეული კატეგორია არ მოიძებნა!");
+        setLoading(false);
+        return;
+      }
+
+      if (!selectedVehicle.categoryMappings) {
+        console.log("loadQuestions: categoryMappings არ არსებობს!");
+        setAllQuestions([]);
+        setCurrentQuestion(null);
+        setShuffledQuestionOrder([]);
+        setShownQuestionIds([]);
+        setErrorMessage("კითხვების კატეგორიები არ მოიძებნა!");
+        setLoading(false);
+        return;
+      }
+
+      const selectedCategoryIndices = categoryCheckboxes
+        .map((checked, index) => (checked ? index : -1))
+        .filter((index) => index !== -1);
+
+      const rawQuestions: Question[] = [];
+      selectedCategoryIndices.forEach((index) => {
+        const category = questionCategories[index];
+        if (!category) {
+          console.log(
+            `loadQuestions: კატეგორია ინდექსით ${index} არ მოიძებნა!`
+          );
+          return;
+        }
+        const categoryQuestions =
+          selectedVehicle.categoryMappings[category.name]?.questions || [];
+        rawQuestions.push(...categoryQuestions);
+      });
+
+      if (rawQuestions.length === 0) {
+        console.log("loadQuestions: კითხვები არ მოიძებნა!");
+        setAllQuestions([]);
+        setCurrentQuestion(null);
+        setShuffledQuestionOrder([]);
+        setShownQuestionIds([]);
+        setErrorMessage("არჩეული კატეგორიისთვის კითხვები არ მოიძებნა!");
+        setLoading(false);
+        return;
+      }
+
+      const questions: DisplayQuestion[] = rawQuestions
+        .map((raw) => {
+          if (!raw || !raw._id || !raw.desc || !raw.answers) {
+            console.log("loadQuestions: არასწორი კითხვის ფორმატი:", raw);
+            return null;
+          }
+          return {
+            id: raw._id.toString(),
+            text: raw.desc,
+            options: raw.answers.map((answer) => answer?.text || ""),
+            correctAnswer:
+              raw.answers.find((answer) => answer?.isCorrect)?.text || "",
+            image: raw.image || "",
+          };
+        })
+        .filter((q): q is DisplayQuestion => q !== null);
+
+      let finalQuestions = questions;
+      if (selectedCategory === "B, B1") {
+        const shuffledQuestions = shuffleArray(questions);
+        finalQuestions = shuffledQuestions.slice(0, 30);
+      } else if (selectedCategory === "C") {
+        const shuffledQuestions = shuffleArray(questions);
+        finalQuestions = shuffledQuestions.slice(0, 40);
+      } else if (selectedCategory === "D") {
+        const shuffledQuestions = shuffleArray(questions);
+        finalQuestions = shuffledQuestions.slice(0, 40);
+      } else {
+        finalQuestions = shuffleArray(questions);
+      }
+
+      const questionIndices = Array.from(
+        { length: finalQuestions.length },
+        (_, i) => i
+      );
+      const shuffledIndices = shuffleArray(questionIndices);
+
+      setAllQuestions(finalQuestions);
+      setShuffledQuestionOrder(shuffledIndices);
+      setCurrentQuestionIndex(0);
+      if (finalQuestions.length > 0) {
+        setCurrentQuestion(finalQuestions[shuffledIndices[0]]);
+        setShownQuestionIds([finalQuestions[shuffledIndices[0]].id]);
+      } else {
+        setCurrentQuestion(null);
+        setShuffledQuestionOrder([]);
+        setShownQuestionIds([]);
+        setErrorMessage("ვერ მოხერხდა კითხვების ჩატვირთვა!");
+      }
+    } catch (error) {
+      console.error("loadQuestions: კითხვების ჩატვირთვისას შეცდომა:", error);
+      setAllQuestions([]);
+      setCurrentQuestion(null);
+      setShuffledQuestionOrder([]);
+      setShownQuestionIds([]);
+      setErrorMessage("შეცდომა კითხვების ჩატვირთვისას!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartExam = () => {
+    console.log(
+      "handleStartExam: გამოცდის დაწყება, კატეგორია:",
+      selectedCategory
+    );
+
+    if (selectedCategory === "D") {
+      const anyChecked = categoryCheckboxes.some((checked) => checked);
+      if (!anyChecked) {
+        setErrorMessage("გთხოვთ, აირჩიოთ მინიმუმ ერთი კატეგორია!");
+        return;
+      }
+    }
+
+    setShowWhitePanel(true);
+    setCurrentQuestionIndex(0);
+    setShownQuestionIds([]);
+    setSelectedAnswer(null);
+    setAnswerSubmitted(false);
+    setIsAnswerCorrect(null);
+    setErrorMessage(null);
+    setCorrectAnswersCount(0);
+    setIncorrectAnswersCount(0);
+    setShowFailModal(false);
+    setAutoNext(false);
+    loadQuestions();
+  };
+
+  const handleRestartExam = () => {
+    setCurrentQuestionIndex(0);
+    setShownQuestionIds([]);
+    setSelectedAnswer(null);
+    setAnswerSubmitted(false);
+    setIsAnswerCorrect(null);
+    setErrorMessage(null);
+    setCorrectAnswersCount(0);
+    setIncorrectAnswersCount(0);
+    setShowFailModal(false);
+    setTimer(1800);
+    setAutoNext(false);
+    loadQuestions();
+  };
+
+  const handleAnswerClick = (option: string) => {
+    if (answerSubmitted) return;
+
+    setSelectedAnswer(option);
+    setAnswerSubmitted(true);
+    const isCorrect = option === currentQuestion?.correctAnswer;
+    setIsAnswerCorrect(isCorrect);
+    if (isCorrect) {
+      setCorrectAnswersCount((prev) => prev + 1);
+    } else {
+      setIncorrectAnswersCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount >= 4) {
+          setShowFailModal(true);
+        }
+        return newCount;
+      });
+    }
+
+    if (autoNext && currentQuestionIndex < allQuestions.length - 1) {
+      setTimeout(() => {
+        handleQuestionNavigation(currentQuestionIndex + 1);
+      }, 1000);
+    }
+  };
+
+  const handleQuestionNavigation = (displayIndex: number) => {
+    if (displayIndex >= 0 && displayIndex < allQuestions.length) {
+      setCurrentQuestionIndex(displayIndex);
+      const actualIndex = shuffledQuestionOrder[displayIndex];
+      setCurrentQuestion(allQuestions[actualIndex]);
+      setAnswerSubmitted(false);
+      setSelectedAnswer(null);
+      setIsAnswerCorrect(null);
+      setShownQuestionIds((prev) => {
+        if (!prev.includes(allQuestions[actualIndex].id)) {
+          return [...prev, allQuestions[actualIndex].id];
+        }
+        return prev;
+      });
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      handleQuestionNavigation(currentQuestionIndex - 1);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < allQuestions.length - 1) {
+      handleQuestionNavigation(currentQuestionIndex + 1);
+    }
+  };
+
+  const handleSelectOpen = () => setIsSelectActive(true);
+  const handleSelectClose = () => setIsSelectActive(false);
+
   const handleMasterCheckboxChange = (checked: boolean) => {
     setCategoryCheckboxes(Array(questionCategories.length).fill(checked));
   };
 
-  // Handle individual checkbox change for each category
   const handleCategoryCheckboxChange = (index: number, checked: boolean) => {
     const updatedCheckboxes = [...categoryCheckboxes];
     updatedCheckboxes[index] = checked;
     setCategoryCheckboxes(updatedCheckboxes);
   };
 
-  // Determine master checkbox state (checked, unchecked, or indeterminate)
+  // X ღილაკზე დაჭერის ფუნქცია
+  const handleCloseExam = () => {
+    setShowWhitePanel(false);
+    setCategoryCheckboxes(Array(questionCategories.length).fill(true));
+    localStorage.setItem("showWhitePanel", JSON.stringify(false));
+    setErrorMessage(null);
+  };
+
   const masterChecked = categoryCheckboxes.every((checked) => checked);
   const masterIndeterminate =
     categoryCheckboxes.some((checked) => checked) && !masterChecked;
 
-  // Calculate the total number of vehicles (questions) and checked vehicles (tickets) per category
   const vehicleCounts = questionCategories.map((category) => {
     const questionsInCategory =
-      selectedVehicle?.categoryMappings[category.name]?.questions || [];
-    return questionsInCategory.length; // Number of questions (vehicles) in this category
+      selectedVehicle?.categoryMappings?.[category.name]?.questions || [];
+    return questionsInCategory.length;
   });
 
-  const totalVehicles = vehicleCounts.reduce((sum, count) => sum + count, 0); // Total vehicles across all categories
+  const totalVehicles = vehicleCounts.reduce((sum, count) => sum + count, 0);
 
-  // Count checked vehicles (questions) based on checked categories
   const checkedVehicles = questionCategories.reduce(
     (count, category, index) => {
       if (categoryCheckboxes[index]) {
         const questionsInCategory =
-          selectedVehicle?.categoryMappings[category.name]?.questions || [];
-        return count + questionsInCategory.length; // Add the number of questions (vehicles) in this category if checked
+          selectedVehicle?.categoryMappings?.[category.name]?.questions || [];
+        return count + questionsInCategory.length;
       }
       return count;
     },
     0
   );
 
+  if (!isClientLoaded) {
+    return null; // LayoutContent უკვე გვაჩვენებს ლოდინგს
+  }
+
   return (
-    <div className="min-h-screen bg-gray-100 flex justify-center p-4 sm:p-5">
-      <div className="w-full max-w-6xl">
-        {/* Start Exam Button */}
-        <div className="flex items-center justify-center mb-4">
+    <div className="min-h-screen bg-gray-100 flex justify-center p-2 sm:p-4 md:p-5 transition-colors duration-300">
+      <div className="w-full max-w-6xl sm:max-w-4xl md:max-w-5xl lg:max-w-6xl">
+        <div className="flex items-center justify-center mb-3 sm:mb-4">
           <Button
             variant="default"
-            className="px-6 sm:px-10 font-bold text-base sm:text-lg bg-green-500 hover:bg-green-600"
+            className="px-4 sm:px-6 md:px-10 font-bold text-sm sm:text-base md:text-lg bg-green-500 hover:bg-green-600"
+            onClick={handleStartExam}
           >
             გამოცდის დაწყება
           </Button>
         </div>
 
-        {/* Vehicle Category Select */}
         <Select
           value={selectedCategory}
           onValueChange={(value) => {
-            setLoading(true); // Set loading to true when a new category is selected
+            console.log("Select: ახალი კატეგორია:", value);
+            setLoading(true);
             setSelectedCategory(value);
-            setCategoryCheckboxes(Array(questionCategories.length).fill(true)); // Reset checkboxes when category changes
-            // Simulate a delay (e.g., 1 second) to mimic data fetching
-            setTimeout(() => {
-              setLoading(false); // Set loading to false after the delay
-            }, 1000);
+            setSelectedVehicleType(value);
+            setCategoryCheckboxes(Array(questionCategories.length).fill(true));
+            setAllQuestions([]);
+            setCurrentQuestion(null);
+            setShuffledQuestionOrder([]);
+            setShownQuestionIds([]);
+            setErrorMessage(null);
+            setTimeout(() => setLoading(false), 500);
           }}
           onOpenChange={(open) =>
             open ? handleSelectOpen() : handleSelectClose()
           }
         >
           <SelectTrigger
-            className={`w-full border-none rounded-md p-4 sm:p-6 text-base sm:text-xl focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors duration-200 select-none ${
+            className={`w-full border-none rounded-md p-3 sm:p-4 md:p-6 text-sm sm:text-base md:text-xl focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition-colors duration-300 select-none ${
               isSelectActive
                 ? "bg-green-500 text-white"
                 : "bg-green-500 text-white"
             }`}
-            aria-label="Select vehicle category"
           >
-            <SelectValue placeholder="Select a category">
+            <SelectValue placeholder="აირჩიეთ კატეგორია">
               <div className="flex items-center">
                 <Image
                   src={
@@ -123,10 +491,10 @@ const ExamPage: React.FC = () => {
                       (category) => category.label === selectedCategory
                     )?.icon || ""
                   }
-                  alt="vehicle icon"
-                  width={32}
-                  height={32}
-                  className="mr-3 sm:mr-4 sm:w-10 sm:h-10"
+                  alt="სატრანსპორტო საშუალების ხატულა"
+                  width={6}
+                  height={6}
+                  className="mr-2 sm:mr-3 md:mr-4 w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10"
                 />
                 <span>{selectedCategory}</span>
               </div>
@@ -137,15 +505,15 @@ const ExamPage: React.FC = () => {
               <SelectItem
                 key={category.id}
                 value={category.label}
-                className="flex items-center p-3 sm:p-2 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer text-sm sm:text-lg"
+                className="flex items-center p-2 sm:p-3 hover:bg-gray-100 focus:bg-gray-100 cursor-pointer text-xs sm:text-sm md:text-lg transition-colors duration-300"
               >
                 <div className="flex items-center">
                   <Image
                     src={category.icon}
-                    alt={`${category.label} icon`}
-                    width={36}
-                    height={36}
-                    className="mr-2 sm:mr-3 sm:w-[45px] sm:h-[45px]"
+                    alt={`${category.label} ხატულა`}
+                    width={8}
+                    height={8}
+                    className="mr-1 sm:mr-2 md:mr-3 w-8 h-8 sm:w-10 sm:h-10 md:w-[45px] md:h-[45px]"
                   />
                   <span>{category.label}</span>
                 </div>
@@ -154,12 +522,17 @@ const ExamPage: React.FC = () => {
           </SelectContent>
         </Select>
 
-        {/* Conditionally render loading indicator or the main content */}
+        {errorMessage && (
+          <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-red-100 text-red-700 rounded-md text-sm sm:text-base">
+            {errorMessage}
+          </div>
+        )}
+
         {loading ? (
-          <div className="flex justify-center items-center mt-4">
-            <div className="flex items-center space-x-2 mt-10">
+          <div className="flex justify-center items-center mt-4 sm:mt-10">
+            <div className="flex items-center space-x-2">
               <svg
-                className="animate-spin h-8 w-8 text-green-500"
+                className="animate-spin h-6 w-6 sm:h-8 sm:w-8 text-green-500"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -178,43 +551,42 @@ const ExamPage: React.FC = () => {
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                 />
               </svg>
-              <span className="text-gray-700 text-lg">იტვირთება...</span>
+              <span className="text-gray-700 text-sm sm:text-lg">
+                იტვირთება...
+              </span>
             </div>
           </div>
         ) : (
-          /* Card with master checkbox, ticket count, and category checkboxes */
-          <Card className="w-full mt-4 sm:mt-5">
-            <CardContent className="pt-4 sm:pt-6">
-              {/* Master Checkbox and Ticket Count, Centered Horizontally */}
-              <div className="flex justify-center items-center mb-3 sm:mb-4 space-x-4">
+          <Card className="w-full mt-3 sm:mt-4 md:mt-5">
+            <CardContent className="pt-3 sm:pt-4 md:pt-6">
+              <div className="flex justify-center items-center mb-2 sm:mb-3 md:mb-4 space-x-3 sm:space-x-4">
                 <div className="flex items-center">
                   <Checkbox
                     checked={masterChecked}
                     onCheckedChange={handleMasterCheckboxChange}
-                    className="mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                    className="mr-1 sm:mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                     ref={(el) => {
-                      if (el) {
-                        el.indeterminate = masterIndeterminate;
-                      }
+                      if (el) el.indeterminate = masterIndeterminate;
                     }}
                   />
-                  <span className="text-gray-700 font-semibold text-sm sm:text-base">
+                  <span className="text-gray-700 font-semibold text-xs sm:text-sm md:text-base">
                     ყველას მონიშვნა/მოხსნა
                   </span>
                 </div>
-                <span className="text-green-500 font-semibold text-sm sm:text-base">
+                <span className="text-green-500 font-semibold text-xs sm:text-sm md:text-base">
                   {checkedVehicles}/{totalVehicles} {selectedGadjet}
                 </span>
               </div>
 
-              {/* Category Checkboxes: Single column on mobile, two columns on tablet and desktop */}
-              <div className="flex flex-col md:flex-row w-full gap-3 md:gap-4">
-                {/* Left Column (or first part of single column on mobile) */}
+              <div className="flex flex-col sm:flex-row w-full gap-2 sm:gap-3 md:gap-4">
                 <div className="flex-1">
                   {questionCategories
                     .slice(0, Math.ceil(questionCategories.length / 2))
                     .map((category, index) => (
-                      <div key={category.id} className="flex items-center mb-2">
+                      <div
+                        key={category.id}
+                        className="flex items-center mb-1 sm:mb-2"
+                      >
                         <Checkbox
                           checked={categoryCheckboxes[index]}
                           onCheckedChange={(checked) =>
@@ -223,21 +595,22 @@ const ExamPage: React.FC = () => {
                               checked as boolean
                             )
                           }
-                          className="mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                          className="mr-1 sm:mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                         />
-                        <span className="text-gray-700 text-sm sm:text-base break-words">
+                        <span className="text-gray-700 text-xs sm:text-sm md:text-base break-words">
                           {category.name} ({vehicleCounts[index]})
                         </span>
                       </div>
                     ))}
                 </div>
-
-                {/* Right Column (or second part of single column on mobile) */}
                 <div className="flex-1">
                   {questionCategories
                     .slice(Math.ceil(questionCategories.length / 2))
                     .map((category, index) => (
-                      <div key={category.id} className="flex items-center mb-2">
+                      <div
+                        key={category.id}
+                        className="flex items-center mb-1 sm:mb-2"
+                      >
                         <Checkbox
                           checked={
                             categoryCheckboxes[
@@ -250,9 +623,9 @@ const ExamPage: React.FC = () => {
                               checked as boolean
                             )
                           }
-                          className="mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                          className="mr-1 sm:mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
                         />
-                        <span className="text-gray-700 text-sm sm:text-base break-words">
+                        <span className="text-gray-700 text-xs sm:text-sm md:text-base break-words">
                           {category.name} (
                           {
                             vehicleCounts[
@@ -267,6 +640,263 @@ const ExamPage: React.FC = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {showWhitePanel && (
+          <div className="fixed inset-0 bg-gray-800 z-50">
+            <table className="fixed top-0 left-0 w-full bg-gray-800 text-white p-1 sm:p-2 z-10 table-fixed border-white">
+              <thead>
+                <tr>
+                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                    {formatTimer(timer)}
+                  </td>
+                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                    {currentQuestionIndex + 1}/{allQuestions.length}
+                  </td>
+                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                    {correctAnswersCount}
+                  </td>
+                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                    {incorrectAnswersCount}/3
+                  </td>
+                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                    {currentQuestion ? currentQuestion.id : "-"}
+                  </td>
+                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                    <Button
+                      variant="ghost"
+                      className="text-white hover:text-gray-300"
+                      onClick={handleCloseExam}
+                    >
+                      <X className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                    </Button>
+                  </td>
+                </tr>
+              </thead>
+            </table>
+
+            {showFailModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-4 sm:p-6 rounded-md shadow-lg flex flex-col items-center max-w-xs sm:max-w-sm md:max-w-md w-full">
+                  <p className="text-lg sm:text-xl font-semibold text-red-600 mb-3 sm:mb-4">
+                    ვერ ჩააბარე
+                  </p>
+                  <Button
+                    variant="default"
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 sm:py-2 px-4 sm:px-6 text-sm sm:text-base"
+                    onClick={handleRestartExam}
+                  >
+                    ახლიდან დაწყება
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            <div className="w-full h-screen overflow-y-scroll pt-10 sm:pt-12 pb-12 sm:pb-16">
+              <div className="flex flex-col items-center w-full max-w-3xl sm:max-w-4xl md:max-w-5xl lg:max-w-4xl mx-auto p-2 sm:p-3 md:p-4">
+                {errorMessage ? (
+                  <div className="flex flex-col items-center">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+                      გამოცდა
+                    </h1>
+                    <p className="text-base sm:text-lg text-red-300 mb-4 sm:mb-6">
+                      {errorMessage}
+                    </p>
+                    <Button
+                      variant="default"
+                      className="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 sm:py-2 px-4 sm:px-6 text-sm sm:text-base"
+                      onClick={handleCloseExam}
+                    >
+                      დახურვა
+                    </Button>
+                  </div>
+                ) : allQuestions.length === 0 ? (
+                  <div className="flex flex-col items-center">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+                      გამოცდა
+                    </h1>
+                    <p className="text-base sm:text-lg text-gray-300 mb-4 sm:mb-6">
+                      კითხვები არ არის ხელმისაწვდომი. გთხოვთ, აირჩიოთ
+                      კატეგორიები.
+                    </p>
+                    <Button
+                      variant="default"
+                      className="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 sm:py-2 px-4 sm:px-6 text-sm sm:text-base"
+                      onClick={handleCloseExam}
+                    >
+                      დახურვა
+                    </Button>
+                  </div>
+                ) : currentQuestion && shuffledOptions.length > 0 ? (
+                  <div className="flex flex-col items-center w-full">
+                    {currentQuestion.image && (
+                      <div className="mb-4 sm:mb-6 mt-2">
+                        <Image
+                          src={currentQuestion.image}
+                          alt="კითხვის სურათი"
+                          width={
+                            currentQuestion.image ===
+                            "https://www.starti.ge/exam/shss.png"
+                              ? 150
+                              : 800
+                          }
+                          height={
+                            currentQuestion.image ===
+                            "https://www.starti.ge/exam/shss.png"
+                              ? 75
+                              : 300
+                          }
+                          className={clsx(
+                            "border-none rounded-md border-gray-700 object-contain w-full",
+                            currentQuestion.image ===
+                              "https://www.starti.ge/exam/shss.png"
+                              ? "max-w-[150px] h-[150px] sm:max-w-[200px] sm:h-[200px] mx-auto"
+                              : "max-w-[400px] sm:max-w-[600px] md:max-w-[800px] lg:max-w-[1200px] h-[200px] sm:h-[300px] md:h-[400px]"
+                          )}
+                          unoptimized
+                        />
+                      </div>
+                    )}
+
+                    <p className="text-base sm:text-lg md:text-lg text-white mb-4 sm:mb-6 text-center">
+                      {currentQuestion.text}
+                    </p>
+
+                    <div className="w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-full mb-4 sm:mb-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 md:gap-4">
+                        {shuffledOptions.map((option, index) => {
+                          const isSelected = selectedAnswer === option;
+                          const isCorrectAnswer =
+                            option === currentQuestion.correctAnswer;
+                          const showCorrectAnswer =
+                            answerSubmitted &&
+                            !isAnswerCorrect &&
+                            isCorrectAnswer;
+                          const buttonBaseClass = showCorrectAnswer
+                            ? "bg-green-500 cursor-default border border-gray-500"
+                            : isSelected && answerSubmitted
+                            ? isAnswerCorrect
+                              ? "bg-green-500 cursor-default border border-gray-500"
+                              : "bg-red-500 cursor-default border border-gray-500"
+                            : isSelected
+                            ? "bg-gray-400 cursor-pointer border border-gray-500"
+                            : "bg-gray-300 border border-gray-500 hover:bg-gray-100";
+                          const textColorClass =
+                            (isSelected &&
+                              answerSubmitted &&
+                              !isAnswerCorrect) ||
+                            showCorrectAnswer
+                              ? "text-white"
+                              : isSelected && answerSubmitted && isAnswerCorrect
+                              ? "text-white"
+                              : "text-black";
+                          return (
+                            <Button
+                              key={index}
+                              disabled={answerSubmitted}
+                              className={`w-full p-3 sm:p-4 rounded-md text-left h-auto min-h-[60px] sm:min-h-[80px] flex items-center justify-start text-wrap break-words ${buttonBaseClass} transition-colors duration-300`}
+                              onClick={() => handleAnswerClick(option)}
+                            >
+                              <span className="mr-1 sm:mr-2 bg-gray-500 border border-gray-700 text-white rounded-md w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-base">
+                                {index + 1}
+                              </span>
+                              <span
+                                className={`flex-1 text-sm sm:text-base ${textColorClass}`}
+                              >
+                                {option}
+                              </span>
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+                      გამოცდა
+                    </h1>
+                    <p className="text-base sm:text-lg text-gray-300 mb-4 sm:mb-6">
+                      კითხვები ამოიწურა!
+                    </p>
+                    <Button
+                      variant="default"
+                      className="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 sm:py-2 px-4 sm:px-6 text-sm sm:text-base"
+                      onClick={handleCloseExam}
+                    >
+                      დახურვა
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div className="pb-20 z-50 text-white fixed bottom-1 right-10 flex items-center gap-1">
+                <Checkbox
+                  className="text-gray-300 bg-white"
+                  checked={autoNext}
+                  onCheckedChange={(checked) => setAutoNext(checked as boolean)}
+                />
+                ავტომატურად გადასვლა
+              </div>
+            </div>
+            {allQuestions.length > 0 && (
+              <div className="fixed bottom-0 left-0 w-full bg-gray-900 p-2 sm:p-3 md:p-4 z-10">
+                <div className="flex items-center justify-between w-full">
+                  <Button
+                    variant="ghost"
+                    className={`text-white hover:bg-gray-700 p-1 sm:p-2 rounded-md ${
+                      currentQuestionIndex === 0
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    onClick={handlePreviousQuestion}
+                    disabled={currentQuestionIndex === 0}
+                  >
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                  </Button>
+
+                  <div className="flex justify-center space-x-1 sm:space-x-2 flex-wrap">
+                    {Array.from({
+                      length: currentQuestion
+                        ? currentQuestion.options.length
+                        : 0,
+                    }).map((_, index) => {
+                      const option = shuffledOptions[index];
+                      const isSelected = selectedAnswer === option;
+                      return (
+                        <Button
+                          key={index}
+                          disabled={answerSubmitted}
+                          className={`border border-gray-400 text-white w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center text-xs sm:text-base ${
+                            isSelected
+                              ? isAnswerCorrect
+                                ? "bg-green-500/30 cursor-default"
+                                : "bg-red-500/30 cursor-default"
+                              : "bg-gray-300 hover:bg-gray-100"
+                          } transition-colors duration-300`}
+                          onClick={() => handleAnswerClick(option)}
+                        >
+                          {index + 1}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    className={`text-white hover:bg-gray-700 p-1 sm:p-2 rounded-md ${
+                      currentQuestionIndex === allQuestions.length - 1
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    onClick={handleNextQuestion}
+                    disabled={currentQuestionIndex === allQuestions.length - 1}
+                  >
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
