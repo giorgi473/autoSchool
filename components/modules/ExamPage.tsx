@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,9 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useAppContext } from "@/app/context/AppContext";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, X } from "lucide-react";
 import clsx from "clsx";
 import {
   Question,
@@ -70,6 +69,9 @@ const ExamPage: React.FC = () => {
   const [showFailModal, setShowFailModal] = useState<boolean>(false);
   const [autoNext, setAutoNext] = useState<boolean>(false);
 
+  // Ref master checkbox-ისთვის
+  const masterCheckboxRef = useRef<HTMLInputElement>(null);
+
   // მასივის შემთხვევით გადალაგების ფუნქცია
   const shuffleArray = <T,>(array: T[]): T[] => {
     const shuffled = [...array];
@@ -88,7 +90,7 @@ const ExamPage: React.FC = () => {
         setTimer((prev) => prev - 1);
       }, 1000);
     } else if (timer === 0 && showWhitePanel && !showFailModal) {
-      console.log("ტაიმერი: დრო ამოიწურა!");
+      // console.log("ტაიმერი: დრო ამოიწურა!");
       handleCloseExam();
     }
     return () => {
@@ -108,10 +110,10 @@ const ExamPage: React.FC = () => {
   // კატეგორიის განახლება
   useEffect(() => {
     if (selectedVehicleType && selectedVehicleType !== selectedCategory) {
-      console.log(
-        "AppContext selectedVehicleType განახლდა:",
-        selectedVehicleType
-      );
+      // console.log(
+      //   "AppContext selectedVehicleType განახლდა:",
+      //   selectedVehicleType
+      // );
       setSelectedCategory(selectedVehicleType);
       setCategoryCheckboxes(Array(questionCategories.length).fill(true));
     }
@@ -170,7 +172,7 @@ const ExamPage: React.FC = () => {
 
   // ჩექბოქსების მდგომარეობის მონიტორინგი
   useEffect(() => {
-    console.log("categoryCheckboxes განახლდა:", categoryCheckboxes);
+    // console.log("categoryCheckboxes განახლდა:", categoryCheckboxes);
   }, [categoryCheckboxes]);
 
   const selectedVehicle = vehicleCategories.find(
@@ -182,11 +184,11 @@ const ExamPage: React.FC = () => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      console.log("loadQuestions: არჩეული კატეგორია:", selectedCategory);
-      console.log("loadQuestions: არჩეული vehicle:", selectedVehicle);
+      // console.log("loadQuestions: არჩეული კატეგორია:", selectedCategory);
+      // console.log("loadQuestions: არჩეული vehicle:", selectedVehicle);
 
       if (!selectedVehicle) {
-        console.log("loadQuestions: vehicle არ მოიძებნა!");
+        // console.log("loadQuestions: vehicle არ მოიძებნა!");
         setAllQuestions([]);
         setCurrentQuestion(null);
         setShuffledQuestionOrder([]);
@@ -197,7 +199,7 @@ const ExamPage: React.FC = () => {
       }
 
       if (!selectedVehicle.categoryMappings) {
-        console.log("loadQuestions: categoryMappings არ არსებობს!");
+        // console.log("loadQuestions: categoryMappings არ არსებობს!");
         setAllQuestions([]);
         setCurrentQuestion(null);
         setShuffledQuestionOrder([]);
@@ -215,9 +217,9 @@ const ExamPage: React.FC = () => {
       selectedCategoryIndices.forEach((index) => {
         const category = questionCategories[index];
         if (!category) {
-          console.log(
-            `loadQuestions: კატეგორია ინდექსით ${index} არ მოიძებნა!`
-          );
+          // console.log(
+          //   `loadQuestions: კატეგორია ინდექსით ${index} არ მოიძებნა!`
+          // );
           return;
         }
         const categoryQuestions =
@@ -226,7 +228,7 @@ const ExamPage: React.FC = () => {
       });
 
       if (rawQuestions.length === 0) {
-        console.log("loadQuestions: კითხვები არ მოიძებნა!");
+        // console.log("loadQuestions: კითხვები არ მოიძებნა!");
         setAllQuestions([]);
         setCurrentQuestion(null);
         setShuffledQuestionOrder([]);
@@ -239,7 +241,7 @@ const ExamPage: React.FC = () => {
       const questions: DisplayQuestion[] = rawQuestions
         .map((raw) => {
           if (!raw || !raw._id || !raw.desc || !raw.answers) {
-            console.log("loadQuestions: არასწორი კითხვის ფორმატი:", raw);
+            // console.log("loadQuestions: არასწორი კითხვის ფორმატი:", raw);
             return null;
           }
           return {
@@ -298,10 +300,10 @@ const ExamPage: React.FC = () => {
   };
 
   const handleStartExam = () => {
-    console.log(
-      "handleStartExam: გამოცდის დაწყება, კატეგორია:",
-      selectedCategory
-    );
+    // console.log(
+    //   "handleStartExam: გამოცდის დაწყება, კატეგორია:",
+    //   selectedCategory
+    // );
 
     if (selectedCategory === "D") {
       const anyChecked = categoryCheckboxes.some((checked) => checked);
@@ -419,6 +421,13 @@ const ExamPage: React.FC = () => {
   const masterChecked = categoryCheckboxes.every((checked) => checked);
   const masterIndeterminate =
     categoryCheckboxes.some((checked) => checked) && !masterChecked;
+
+  // `indeterminate` თვისების დაყენება master checkbox-ზე
+  useEffect(() => {
+    if (masterCheckboxRef.current) {
+      masterCheckboxRef.current.indeterminate = masterIndeterminate;
+    }
+  }, [masterIndeterminate]);
 
   const vehicleCounts = questionCategories.map((category) => {
     const questionsInCategory =
@@ -561,13 +570,14 @@ const ExamPage: React.FC = () => {
             <CardContent className="pt-3 sm:pt-4 md:pt-6">
               <div className="flex justify-center items-center mb-2 sm:mb-3 md:mb-4 space-x-3 sm:space-x-4">
                 <div className="flex items-center">
-                  <Checkbox
+                  <input
+                    type="checkbox"
+                    ref={masterCheckboxRef}
                     checked={masterChecked}
-                    onCheckedChange={handleMasterCheckboxChange}
-                    className="mr-1 sm:mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
-                    ref={(el) => {
-                      if (el) el.indeterminate = masterIndeterminate;
-                    }}
+                    onChange={(e) =>
+                      handleMasterCheckboxChange(e.target.checked)
+                    }
+                    className="mr-1 sm:mr-2 border-green-500 accent-green-500 focus:ring-green-500 w-4 h-4 sm:w-5 sm:h-5"
                   />
                   <span className="text-gray-700 font-semibold text-xs sm:text-sm md:text-base">
                     ყველას მონიშვნა/მოხსნა
@@ -587,15 +597,16 @@ const ExamPage: React.FC = () => {
                         key={category.id}
                         className="flex items-center mb-1 sm:mb-2"
                       >
-                        <Checkbox
+                        <input
+                          type="checkbox"
                           checked={categoryCheckboxes[index]}
-                          onCheckedChange={(checked) =>
+                          onChange={(e) =>
                             handleCategoryCheckboxChange(
                               index,
-                              checked as boolean
+                              e.target.checked
                             )
                           }
-                          className="mr-1 sm:mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                          className="mr-1 sm:mr-2 border-green-500 accent-green-500 focus:ring-green-500 w-4 h-4 sm:w-5 sm:h-5"
                         />
                         <span className="text-gray-700 text-xs sm:text-sm md:text-base break-words">
                           {category.name} ({vehicleCounts[index]})
@@ -611,19 +622,20 @@ const ExamPage: React.FC = () => {
                         key={category.id}
                         className="flex items-center mb-1 sm:mb-2"
                       >
-                        <Checkbox
+                        <input
+                          type="checkbox"
                           checked={
                             categoryCheckboxes[
                               index + Math.ceil(questionCategories.length / 2)
                             ]
                           }
-                          onCheckedChange={(checked) =>
+                          onChange={(e) =>
                             handleCategoryCheckboxChange(
                               index + Math.ceil(questionCategories.length / 2),
-                              checked as boolean
+                              e.target.checked
                             )
                           }
-                          className="mr-1 sm:mr-2 border-green-500 data-[state=checked]:bg-green-500 data-[state=checked]:text-white"
+                          className="mr-1 sm:mr-2 border-green-500 accent-green-500 focus:ring-green-500 w-4 h-4 sm:w-5 sm:h-5"
                         />
                         <span className="text-gray-700 text-xs sm:text-sm md:text-base break-words">
                           {category.name} (
@@ -747,11 +759,11 @@ const ExamPage: React.FC = () => {
                               : 300
                           }
                           className={clsx(
-                            "border-none rounded-md border-gray-700 object-contain w-full",
+                            "border-none object-contain w-full",
                             currentQuestion.image ===
                               "https://www.starti.ge/exam/shss.png"
                               ? "max-w-[150px] h-[150px] sm:max-w-[200px] sm:h-[200px] mx-auto"
-                              : "max-w-[400px] sm:max-w-[600px] md:max-w-[800px] lg:max-w-[1200px] h-[200px] sm:h-[300px] md:h-[400px]"
+                              : "max-w-[400px] sm:max-w-[600px] md:max-w-[800px] lg:max-w-[1200px] h-[200px] sm:h-[300px] md:h-[500px]"
                           )}
                           unoptimized
                         />
@@ -830,12 +842,13 @@ const ExamPage: React.FC = () => {
                 )}
               </div>
               <div className="pb-20 z-50 text-white fixed bottom-1 right-10 flex items-center gap-1">
-                <Checkbox
-                  className="text-gray-300 bg-white"
+                <input
+                  type="checkbox"
                   checked={autoNext}
-                  onCheckedChange={(checked) => setAutoNext(checked as boolean)}
+                  onChange={(e) => setAutoNext(e.target.checked)}
+                  className="border-green-500 accent-green-500 focus:ring-green-500 w-4 h-4 sm:w-5 sm:h-5"
                 />
-                ავტომატურად გადასვლა
+                <span>ავტომატურად გადასვლა</span>
               </div>
             </div>
             {allQuestions.length > 0 && (
@@ -843,7 +856,7 @@ const ExamPage: React.FC = () => {
                 <div className="flex items-center justify-between w-full">
                   <Button
                     variant="ghost"
-                    className={`text-white hover:bg-gray-700 p-1 sm:p-2 rounded-md ${
+                    className={`text-white hover:bg-gray-700 p-1 sm:px-4 rounded-md bg-gray-600 px-3 ring-1 ring-white ${
                       currentQuestionIndex === 0
                         ? "opacity-50 cursor-not-allowed"
                         : ""
@@ -851,7 +864,7 @@ const ExamPage: React.FC = () => {
                     onClick={handlePreviousQuestion}
                     disabled={currentQuestionIndex === 0}
                   >
-                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                    <ChevronsLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-green-400 rounded-sm" />
                   </Button>
 
                   <div className="flex justify-center space-x-1 sm:space-x-2 flex-wrap">
@@ -883,7 +896,7 @@ const ExamPage: React.FC = () => {
 
                   <Button
                     variant="ghost"
-                    className={`text-white hover:bg-gray-700 p-1 sm:p-2 rounded-md ${
+                    className={`text-white hover:bg-gray-700 sm:px-4 rounded-md bg-gray-600 px-3 ring-1 ring-white ${
                       currentQuestionIndex === allQuestions.length - 1
                         ? "opacity-50 cursor-not-allowed"
                         : ""
@@ -891,7 +904,7 @@ const ExamPage: React.FC = () => {
                     onClick={handleNextQuestion}
                     disabled={currentQuestionIndex === allQuestions.length - 1}
                   >
-                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                    <ChevronsRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-green-500 rounded-sm" />
                   </Button>
                 </div>
               </div>
