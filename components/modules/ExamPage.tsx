@@ -29,6 +29,14 @@ interface DisplayQuestion {
   image: string;
 }
 
+// ინტერფეისი გაცემული პასუხების შესანახად
+interface AnsweredQuestion {
+  questionId: string;
+  selectedAnswer: string;
+  isCorrect: boolean;
+  shuffledOptions: string[];
+}
+
 const ExamPage: React.FC = () => {
   const {
     showWhitePanel,
@@ -67,7 +75,11 @@ const ExamPage: React.FC = () => {
   const [correctAnswersCount, setCorrectAnswersCount] = useState<number>(0);
   const [incorrectAnswersCount, setIncorrectAnswersCount] = useState<number>(0);
   const [showFailModal, setShowFailModal] = useState<boolean>(false);
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(false);
   const [autoNext, setAutoNext] = useState<boolean>(false);
+  const [answeredQuestions, setAnsweredQuestions] = useState<
+    AnsweredQuestion[]
+  >([]);
 
   // Ref master checkbox-ისთვის
   const masterCheckboxRef = useRef<HTMLInputElement>(null);
@@ -85,19 +97,29 @@ const ExamPage: React.FC = () => {
   // ტაიმერის ეფექტი
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
-    if (showWhitePanel && timer > 0 && !showFailModal) {
+    if (
+      showWhitePanel &&
+      timer > 0 &&
+      !showFailModal &&
+      !showSuccessModal &&
+      allQuestions.length > 0
+    ) {
       interval = setInterval(() => {
         setTimer((prev) => prev - 1);
       }, 1000);
-    } else if (timer === 0 && showWhitePanel && !showFailModal) {
-      // console.log("ტაიმერი: დრო ამოიწურა!");
-      handleCloseExam();
+    } else if (
+      timer === 0 &&
+      showWhitePanel &&
+      !showFailModal &&
+      !showSuccessModal &&
+      allQuestions.length > 0
+    ) {
+      setShowFailModal(true); // გამოვაჩინოთ "ვერ ჩააბარე" მოდალი მხოლოდ გამოცდის აქტიურობისას
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showWhitePanel, timer, showFailModal]);
+  }, [showWhitePanel, timer, showFailModal, showSuccessModal, allQuestions]);
 
   const formatTimer = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -110,10 +132,6 @@ const ExamPage: React.FC = () => {
   // კატეგორიის განახლება
   useEffect(() => {
     if (selectedVehicleType && selectedVehicleType !== selectedCategory) {
-      // console.log(
-      //   "AppContext selectedVehicleType განახლდა:",
-      //   selectedVehicleType
-      // );
       setSelectedCategory(selectedVehicleType);
       setCategoryCheckboxes(Array(questionCategories.length).fill(true));
     }
@@ -136,6 +154,8 @@ const ExamPage: React.FC = () => {
       setCorrectAnswersCount(0);
       setIncorrectAnswersCount(0);
       setShowFailModal(false);
+      setShowSuccessModal(false);
+      setAnsweredQuestions([]);
     } else {
       document.body.classList.remove("overflow-hidden");
       setAllQuestions([]);
@@ -150,7 +170,9 @@ const ExamPage: React.FC = () => {
       setCorrectAnswersCount(0);
       setIncorrectAnswersCount(0);
       setShowFailModal(false);
+      setShowSuccessModal(false);
       setCategoryCheckboxes(Array(questionCategories.length).fill(true));
+      setAnsweredQuestions([]);
     }
 
     return () => {
@@ -161,19 +183,49 @@ const ExamPage: React.FC = () => {
   // ოფციების გადალაგება
   useEffect(() => {
     if (currentQuestion && currentQuestion.options) {
-      setShuffledOptions(shuffleArray(currentQuestion.options));
-      setAnswerSubmitted(false);
-      setIsAnswerCorrect(null);
-      setSelectedAnswer(null);
+      const existingAnswer = answeredQuestions.find(
+        (ans) => ans.questionId === currentQuestion.id
+      );
+      if (existingAnswer) {
+        setShuffledOptions(existingAnswer.shuffledOptions);
+        setSelectedAnswer(existingAnswer.selectedAnswer);
+        setAnswerSubmitted(true);
+        setIsAnswerCorrect(existingAnswer.isCorrect);
+      } else {
+        setShuffledOptions(shuffleArray(currentQuestion.options));
+        setAnswerSubmitted(false);
+        setIsAnswerCorrect(null);
+        setSelectedAnswer(null);
+      }
     } else {
       setShuffledOptions([]);
     }
-  }, [currentQuestion]);
+  }, [currentQuestion, answeredQuestions]);
+
+  // წარმატების მოდალის გამოჩენა
+  useEffect(() => {
+    if (
+      allQuestions.length === 30 &&
+      answeredQuestions.length === allQuestions.length
+    ) {
+      if (
+        correctAnswersCount === 30 ||
+        (correctAnswersCount === 29 && incorrectAnswersCount === 1) ||
+        (correctAnswersCount === 28 && incorrectAnswersCount === 2) ||
+        (correctAnswersCount === 27 && incorrectAnswersCount === 3)
+      ) {
+        setShowSuccessModal(true);
+      }
+    }
+  }, [
+    correctAnswersCount,
+    incorrectAnswersCount,
+    answeredQuestions,
+    allQuestions,
+  ]);
 
   // ჩექბოქსების მდგომარეობის მონიტორინგი
-  useEffect(() => {
-    // console.log("categoryCheckboxes განახლდა:", categoryCheckboxes);
-  }, [categoryCheckboxes]);
+  useEffect(() => {}, [categoryCheckboxes]);
 
   const selectedVehicle = vehicleCategories.find(
     (category) => category.label === selectedCategory
@@ -184,11 +236,7 @@ const ExamPage: React.FC = () => {
     setLoading(true);
     setErrorMessage(null);
     try {
-      // console.log("loadQuestions: არჩეული კატეგორია:", selectedCategory);
-      // console.log("loadQuestions: არჩეული vehicle:", selectedVehicle);
-
       if (!selectedVehicle) {
-        // console.log("loadQuestions: vehicle არ მოიძებნა!");
         setAllQuestions([]);
         setCurrentQuestion(null);
         setShuffledQuestionOrder([]);
@@ -199,7 +247,6 @@ const ExamPage: React.FC = () => {
       }
 
       if (!selectedVehicle.categoryMappings) {
-        // console.log("loadQuestions: categoryMappings არ არსებობს!");
         setAllQuestions([]);
         setCurrentQuestion(null);
         setShuffledQuestionOrder([]);
@@ -217,9 +264,6 @@ const ExamPage: React.FC = () => {
       selectedCategoryIndices.forEach((index) => {
         const category = questionCategories[index];
         if (!category) {
-          // console.log(
-          //   `loadQuestions: კატეგორია ინდექსით ${index} არ მოიძებნა!`
-          // );
           return;
         }
         const categoryQuestions =
@@ -228,7 +272,6 @@ const ExamPage: React.FC = () => {
       });
 
       if (rawQuestions.length === 0) {
-        // console.log("loadQuestions: კითხვები არ მოიძებნა!");
         setAllQuestions([]);
         setCurrentQuestion(null);
         setShuffledQuestionOrder([]);
@@ -241,7 +284,6 @@ const ExamPage: React.FC = () => {
       const questions: DisplayQuestion[] = rawQuestions
         .map((raw) => {
           if (!raw || !raw._id || !raw.desc || !raw.answers) {
-            // console.log("loadQuestions: არასწორი კითხვის ფორმატი:", raw);
             return null;
           }
           return {
@@ -300,11 +342,6 @@ const ExamPage: React.FC = () => {
   };
 
   const handleStartExam = () => {
-    // console.log(
-    //   "handleStartExam: გამოცდის დაწყება, კატეგორია:",
-    //   selectedCategory
-    // );
-
     if (selectedCategory === "D") {
       const anyChecked = categoryCheckboxes.some((checked) => checked);
       if (!anyChecked) {
@@ -323,7 +360,9 @@ const ExamPage: React.FC = () => {
     setCorrectAnswersCount(0);
     setIncorrectAnswersCount(0);
     setShowFailModal(false);
+    setShowSuccessModal(false);
     setAutoNext(false);
+    setAnsweredQuestions([]);
     loadQuestions();
   };
 
@@ -337,8 +376,10 @@ const ExamPage: React.FC = () => {
     setCorrectAnswersCount(0);
     setIncorrectAnswersCount(0);
     setShowFailModal(false);
+    setShowSuccessModal(false);
     setTimer(1800);
     setAutoNext(false);
+    setAnsweredQuestions([]);
     loadQuestions();
   };
 
@@ -349,6 +390,20 @@ const ExamPage: React.FC = () => {
     setAnswerSubmitted(true);
     const isCorrect = option === currentQuestion?.correctAnswer;
     setIsAnswerCorrect(isCorrect);
+
+    // შევინახოთ გაცემული პასუხი
+    if (currentQuestion) {
+      setAnsweredQuestions((prev) => [
+        ...prev,
+        {
+          questionId: currentQuestion.id,
+          selectedAnswer: option,
+          isCorrect,
+          shuffledOptions: [...shuffledOptions],
+        },
+      ]);
+    }
+
     if (isCorrect) {
       setCorrectAnswersCount((prev) => prev + 1);
     } else {
@@ -373,9 +428,6 @@ const ExamPage: React.FC = () => {
       setCurrentQuestionIndex(displayIndex);
       const actualIndex = shuffledQuestionOrder[displayIndex];
       setCurrentQuestion(allQuestions[actualIndex]);
-      setAnswerSubmitted(false);
-      setSelectedAnswer(null);
-      setIsAnswerCorrect(null);
       setShownQuestionIds((prev) => {
         if (!prev.includes(allQuestions[actualIndex].id)) {
           return [...prev, allQuestions[actualIndex].id];
@@ -392,7 +444,7 @@ const ExamPage: React.FC = () => {
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < allQuestions.length - 1) {
+    if (answerSubmitted && currentQuestionIndex < allQuestions.length - 1) {
       handleQuestionNavigation(currentQuestionIndex + 1);
     }
   };
@@ -410,19 +462,18 @@ const ExamPage: React.FC = () => {
     setCategoryCheckboxes(updatedCheckboxes);
   };
 
-  // X ღილაკზე დაჭერის ფუნქცია
   const handleCloseExam = () => {
     setShowWhitePanel(false);
     setCategoryCheckboxes(Array(questionCategories.length).fill(true));
     localStorage.setItem("showWhitePanel", JSON.stringify(false));
     setErrorMessage(null);
+    setAnsweredQuestions([]);
   };
 
   const masterChecked = categoryCheckboxes.every((checked) => checked);
   const masterIndeterminate =
     categoryCheckboxes.some((checked) => checked) && !masterChecked;
 
-  // `indeterminate` თვისების დაყენება master checkbox-ზე
   useEffect(() => {
     if (masterCheckboxRef.current) {
       masterCheckboxRef.current.indeterminate = masterIndeterminate;
@@ -450,7 +501,7 @@ const ExamPage: React.FC = () => {
   );
 
   if (!isClientLoaded) {
-    return null; // LayoutContent უკვე გვაჩვენებს ლოდინგს
+    return null;
   }
 
   return (
@@ -469,7 +520,6 @@ const ExamPage: React.FC = () => {
         <Select
           value={selectedCategory}
           onValueChange={(value) => {
-            console.log("Select: ახალი კატეგორია:", value);
             setLoading(true);
             setSelectedCategory(value);
             setSelectedVehicleType(value);
@@ -479,6 +529,7 @@ const ExamPage: React.FC = () => {
             setShuffledQuestionOrder([]);
             setShownQuestionIds([]);
             setErrorMessage(null);
+            setAnsweredQuestions([]);
             setTimeout(() => setLoading(false), 500);
           }}
           onOpenChange={(open) =>
@@ -656,31 +707,31 @@ const ExamPage: React.FC = () => {
 
         {showWhitePanel && (
           <div className="fixed inset-0 bg-gray-800 z-50">
-            <table className="fixed top-0 left-0 w-full bg-gray-800 text-white p-1 sm:p-2 z-10 table-fixed border-white">
+            <table className="fixed top-0 left-0 w-full bg-gray-800 font-medium text-white p-1 sm:p-2 z-60 table-fixed border-white">
               <thead>
                 <tr>
-                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                  <td className="text-sm sm:text-base md:text-lg text-yellow-200 px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
                     {formatTimer(timer)}
                   </td>
-                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                  <td className="text-sm sm:text-base md:text-lg text-yellow-500 px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
                     {currentQuestionIndex + 1}/{allQuestions.length}
                   </td>
-                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                  <td className="text-sm sm:text-base md:text-lg text-green-500 px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
                     {correctAnswersCount}
                   </td>
-                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                  <td className="text-sm sm:text-base md:text-lg text-red-500 px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
                     {incorrectAnswersCount}/3
                   </td>
-                  <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
-                    {currentQuestion ? currentQuestion.id : "-"}
+                  <td className="text-sm sm:text-base md:text-lg text-yellow-500 px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
+                    #{currentQuestion ? currentQuestion.id : "-"}
                   </td>
                   <td className="text-sm sm:text-base md:text-lg text-white px-2 sm:px-3 md:px-4 py-1 sm:py-2 w-[16.67%] border-2 border-white text-center">
                     <Button
-                      variant="ghost"
-                      className="text-white hover:text-gray-300"
+                      variant="grey"
+                      className=""
                       onClick={handleCloseExam}
                     >
-                      <X className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
+                      <X className="w-5 h-5 sm:w-5 sm:h-5 md:w-6 md:h-6 text-yellow-200" />
                     </Button>
                   </td>
                 </tr>
@@ -688,10 +739,27 @@ const ExamPage: React.FC = () => {
             </table>
 
             {showFailModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
                 <div className="bg-white p-4 sm:p-6 rounded-md shadow-lg flex flex-col items-center max-w-xs sm:max-w-sm md:max-w-md w-full">
                   <p className="text-lg sm:text-xl font-semibold text-red-600 mb-3 sm:mb-4">
                     ვერ ჩააბარე
+                  </p>
+                  <Button
+                    variant="default"
+                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-1 sm:py-2 px-4 sm:px-6 text-sm sm:text-base"
+                    onClick={handleRestartExam}
+                  >
+                    ახლიდან დაწყება
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {showSuccessModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
+                <div className="bg-white p-4 sm:p-6 rounded-md shadow-lg flex flex-col items-center max-w-xs sm:max-w-sm md:max-w-md w-full">
+                  <p className="text-lg sm:text-xl font-semibold text-green-600 mb-3 sm:mb-4 text-center">
+                    თქვენ წარმატებით ჩააბარეთ, გისურვებთ წარმატებებს!
                   </p>
                   <Button
                     variant="default"
@@ -806,8 +874,11 @@ const ExamPage: React.FC = () => {
                             <Button
                               key={index}
                               disabled={answerSubmitted}
-                              className={`w-full p-3 sm:p-4 rounded-md text-left h-auto min-h-[60px] sm:min-h-[80px] flex items-center justify-start text-wrap break-words ${buttonBaseClass} transition-colors duration-300`}
+                              className={`w-full p-3 sm:p-4 rounded-md text-left h-auto min-h-[60px] sm:min-h-[80px] flex items-center justify-start text-wrap break-words ${buttonBaseClass} transition-colors duration-300 touch-action-manipulation`}
                               onClick={() => handleAnswerClick(option)}
+                              onTouchEnd={() =>
+                                !answerSubmitted && handleAnswerClick(option)
+                              }
                             >
                               <span className="mr-1 sm:mr-2 bg-gray-500 border border-gray-700 text-white rounded-md w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-base">
                                 {index + 1}
@@ -841,7 +912,7 @@ const ExamPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="pb-20 z-50 text-white fixed bottom-1 right-10 flex items-center gap-1">
+              <div className="pb-20 z-40 text-white fixed bottom-1 right-10 flex items-center gap-1">
                 <input
                   type="checkbox"
                   checked={autoNext}
@@ -852,22 +923,23 @@ const ExamPage: React.FC = () => {
               </div>
             </div>
             {allQuestions.length > 0 && (
-              <div className="fixed bottom-0 left-0 w-full bg-gray-900 p-2 sm:p-3 md:p-4 z-10">
-                <div className="flex items-center justify-between w-full">
+              <div className="fixed bottom-0 left-0 w-full bg-gray-900 p-2 sm:p-3 md:p-4 z-50">
+                <div className="flex items-center justify-between w-full px-2 mx-auto">
                   <Button
                     variant="ghost"
-                    className={`text-white hover:bg-gray-700 p-1 sm:px-4 rounded-md bg-gray-600 px-3 ring-1 ring-white ${
+                    className={`text-gray-600 hover:bg-gray-800 p-1 sm:p-4 rounded-md bg-gray-700 px-3 ring-1 ring-gray-400 touch-action-manipulation ${
                       currentQuestionIndex === 0
                         ? "opacity-50 cursor-not-allowed"
                         : ""
                     }`}
                     onClick={handlePreviousQuestion}
+                    onTouchEnd={handlePreviousQuestion}
                     disabled={currentQuestionIndex === 0}
                   >
-                    <ChevronsLeft className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-green-400 rounded-sm" />
+                    <ChevronsLeft className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-yellow-400 rounded-sm" />
                   </Button>
 
-                  <div className="flex justify-center space-x-1 sm:space-x-2 flex-wrap">
+                  <div className="flex justify-center space-x-1.5 sm:space-x-2">
                     {Array.from({
                       length: currentQuestion
                         ? currentQuestion.options.length
@@ -879,14 +951,17 @@ const ExamPage: React.FC = () => {
                         <Button
                           key={index}
                           disabled={answerSubmitted}
-                          className={`border border-gray-400 text-white w-8 h-8 sm:w-10 sm:h-10 rounded-md flex items-center justify-center text-xs sm:text-base ${
+                          className={`text-black w-10 h-10 sm:w-11 sm:h-11 md:w-11 md:h-11 rounded-md flex items-center justify-center text-base sm:text-lg md:text-xl z-60 touch-action-manipulation ${
                             isSelected
                               ? isAnswerCorrect
-                                ? "bg-green-500/30 cursor-default"
-                                : "bg-red-500/30 cursor-default"
+                                ? "bg-green-500 cursor-default"
+                                : "bg-red-500 cursor-default"
                               : "bg-gray-300 hover:bg-gray-100"
                           } transition-colors duration-300`}
                           onClick={() => handleAnswerClick(option)}
+                          onTouchEnd={() =>
+                            !answerSubmitted && handleAnswerClick(option)
+                          }
                         >
                           {index + 1}
                         </Button>
@@ -896,15 +971,20 @@ const ExamPage: React.FC = () => {
 
                   <Button
                     variant="ghost"
-                    className={`text-white hover:bg-gray-700 sm:px-4 rounded-md bg-gray-600 px-3 ring-1 ring-white ${
+                    className={`text-gray-600 hover:bg-gray-800 p-1 sm:p-4 rounded-md bg-gray-700 px-3 ring-1 ring-gray-400 int touch-action-manipulation ${
+                      !answerSubmitted ||
                       currentQuestionIndex === allQuestions.length - 1
                         ? "opacity-50 cursor-not-allowed"
                         : ""
                     }`}
                     onClick={handleNextQuestion}
-                    disabled={currentQuestionIndex === allQuestions.length - 1}
+                    onTouchEnd={handleNextQuestion}
+                    disabled={
+                      !answerSubmitted ||
+                      currentQuestionIndex === allQuestions.length - 1
+                    }
                   >
-                    <ChevronsRight className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 bg-green-500 rounded-sm" />
+                    <ChevronsRight className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-yellow-400 rounded-sm" />
                   </Button>
                 </div>
               </div>
