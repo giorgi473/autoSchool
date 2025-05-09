@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Separator } from "@/components/ui/separator";
+import { TextAnimate } from "@/components/magicui/text-animate";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -57,7 +58,9 @@ const HomePage: React.FC = () => {
             variants={itemVariants}
             className="text-2xl sm:text-4xl font-bold mb-2"
           >
-            რას წარმოვადგენთ?
+            <TextAnimate animation="blurInUp" by="character" once>
+              რას წარმოვადგენთ?
+            </TextAnimate>
           </motion.h1>
           <motion.hr
             variants={itemVariants}
@@ -93,7 +96,11 @@ const HomePage: React.FC = () => {
         variants={itemVariants}
         className="flex flex-col justify-center items-center"
       >
-        <h2 className="text-3xl font-bold mb-8">სერვისები</h2>
+        <h2 className="text-3xl font-bold mb-8">
+          <TextAnimate animation="blurInUp" by="character" once>
+            სერვისები
+          </TextAnimate>
+        </h2>
       </motion.div>
       <motion.div
         initial="hidden"
@@ -247,7 +254,9 @@ const HomePage: React.FC = () => {
         className="container mx-auto flex flex-col items-center mb-8 sm:mb-12"
       >
         <motion.h2 variants={itemVariants} className="text-3xl font-bold mb-8">
-          რას გთავაზობთ
+          <TextAnimate animation="blurInUp" by="character" once>
+            რას გთავაზობთ
+          </TextAnimate>
         </motion.h2>
         <motion.div
           variants={containerVariants}
@@ -315,7 +324,9 @@ const HomePage: React.FC = () => {
         className="container mx-auto flex flex-col items-center mb-8 sm:mb-12"
       >
         <motion.h2 variants={itemVariants} className="text-3xl font-bold mb-8">
-          ჩვენი მდებარეობა
+          <TextAnimate animation="blurInUp" by="character" once>
+            ჩვენი მდებარეობა
+          </TextAnimate>
         </motion.h2>
         <motion.div
           variants={imageVariants}
