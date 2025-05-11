@@ -1,9 +1,9 @@
 "use client";
 
 import { motion, Variants } from "framer-motion";
+import { TextAnimate } from "@/components/magicui/text-animate";
 import { paragraphs } from "@/constants/roadSignsData";
 import RoadSigns from "@/components/modules/RoadSigns";
-import { TextAnimate } from "@/components/magicui/text-animate";
 
 const pageVariants: Variants = {
   hidden: { opacity: 0 },
@@ -55,7 +55,7 @@ const roadSignsContainerVariants: Variants = {
 export default function RoadSignsPage() {
   return (
     <motion.div
-      className="min-h-screen bg-gray-100 flex flex-col items-center justify-start px-4 pt-6 sm:px-6 sm:pt-8"
+      className="min-h-screen flex flex-col items-center justify-start px-4 pt-6 sm:px-6 sm:pt-8"
       variants={pageVariants}
       initial="hidden"
       animate="visible"
@@ -83,7 +83,7 @@ export default function RoadSignsPage() {
         ))}
       </motion.div>
       <motion.div
-        className="border-[3px] border-dashed border-green-300 sm:max-w-6xl mx-auto w-full rounded-md px-4 py-5"
+        className="sm:max-w-7xl mx-auto w-full rounded-md py-5 px-10"
         variants={roadSignsContainerVariants}
         initial="hidden"
         animate="visible"
