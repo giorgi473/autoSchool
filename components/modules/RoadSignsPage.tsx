@@ -55,13 +55,13 @@ const roadSignsContainerVariants: Variants = {
 export default function RoadSignsPage() {
   return (
     <motion.div
-      className="min-h-screen flex flex-col items-center justify-start px-4 pt-6 sm:px-6 sm:pt-8"
+      className="min-h-screen flex flex-col items-center justify-start px-4 pt-2 sm:px-6 sm:pt-5"
       variants={pageVariants}
       initial="hidden"
       animate="visible"
     >
       <motion.h1
-        className="text-3xl font-bold text-center mb-6 text-gray-800 sm:text-4xl sm:mb-8"
+        className="text-3xl font-bold text-center mb-4 text-gray-800 sm:text-4xl sm:mb-7"
         variants={titleVariants}
         initial="hidden"
         animate="visible"
@@ -71,13 +71,17 @@ export default function RoadSignsPage() {
         </TextAnimate>
       </motion.h1>
       <motion.div
-        className="w-full max-w-2xl text-gray-700 text-base text-center space-y-4 sm:max-w-6xl sm:text-lg sm:space-y-6 pb-20"
+        className="w-full max-w-2xl text-gray-700 text-base text-center space-y-4 sm:max-w-6xl sm:text-lg sm:space-y-6 pb-10"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {paragraphs.map((paragraph) => (
-          <motion.p key={paragraph.id} variants={paragraphVariants}>
+          <motion.p
+            key={paragraph.id}
+            variants={paragraphVariants}
+            className="text-sm"
+          >
             {paragraph.text}
           </motion.p>
         ))}
