@@ -87,7 +87,7 @@ export default function RoadSignsPage() {
         ))}
       </motion.div>
       <motion.div
-        className="sm:max-w-7xl mx-auto w-full rounded-md py-5 px-10"
+        className="sm:max-w-7xl mx-auto w-full rounded-md py-2 px-3"
         variants={roadSignsContainerVariants}
         initial="hidden"
         animate="visible"

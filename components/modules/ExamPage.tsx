@@ -307,6 +307,9 @@ const ExamPage: React.FC = () => {
       } else if (selectedCategory === "D") {
         const shuffledQuestions = shuffleArray(questions);
         finalQuestions = shuffledQuestions.slice(0, 40);
+      } else if (selectedCategory === "T,S") {
+        const shuffledQuestions = shuffleArray(questions);
+        finalQuestions = shuffledQuestions.slice(0, 30);
       } else {
         finalQuestions = shuffleArray(questions);
       }
@@ -912,14 +915,16 @@ const ExamPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="pb-20 z-40 text-white fixed bottom-1 right-10 flex items-center gap-1">
+              <div className="pb-16 sm:pb-[75px] md:pb-20 z-40 text-white fixed bottom-1 right-[26px] sm:right-[34.5px] md:right-[37.5px] flex items-center gap-1">
                 <input
                   type="checkbox"
                   checked={autoNext}
                   onChange={(e) => setAutoNext(e.target.checked)}
-                  className="border-green-500 accent-green-500 focus:ring-green-500 w-4 h-4 sm:w-5 sm:h-5"
+                  className="border-green-500 accent-yellow-500 focus:ring-green-500 w-5 h-5 sm:w-5 sm:h-5"
                 />
-                <span>ავტომატურად გადასვლა</span>
+                <span className="hidden sm:hidden md:hidden lg:inline-flex text-sm">
+                  ავტომატურად გადასვლა
+                </span>
               </div>
             </div>
             {allQuestions.length > 0 && (

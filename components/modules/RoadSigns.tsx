@@ -30,8 +30,8 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2, // თითოეული ქარდის გამოჩენას შორის 0.2 წმ დაგვიანება
-      delayChildren: 0.3, // პირველი ქარდის ანიმაციის დაწყებამდე 0.3 წმ
+      staggerChildren: 0.2,
+      delayChildren: 0.3,
     },
   },
   exit: {
@@ -79,7 +79,7 @@ export default function RoadSigns() {
   const containerRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(containerRef, {
     once: true,
-    margin: "0px 0px -100px 0px", // ანიმაცია იწყება, როცა კონტეინერი 100px-ით ახლოსაა
+    margin: "0px 0px -100px 0px",
   });
 
   const handleClick = (category: string) => {
@@ -176,7 +176,6 @@ export default function RoadSigns() {
               }}
             >
               {activeCategory === "road_markings" ? (
-                // საგზაო მონიშვნების განლაგება (მოდალის გარეშე, დიდი სურათი)
                 <div className="flex flex-col lg:flex-row gap-6 items-start">
                   <div className="flex-shrink-0 w-full lg:w-1/3">
                     <Image
@@ -190,14 +189,13 @@ export default function RoadSigns() {
                     />
                   </div>
                   <div className="flex flex-col gap-3 w-full">
-                    <h2 className="text-sm font-semibold text-gray-800">
+                    <h2 className="text-sm font-semibold text-green-600">
                       {description}
                     </h2>
                     <p className="text-gray-700 text-sm">{modalDescription}</p>
                   </div>
                 </div>
               ) : (
-                // სხვა კატეგორიების ორიგინალური განლაგება (მოდალით)
                 <>
                   <Image
                     src={image}
