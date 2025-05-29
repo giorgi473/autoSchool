@@ -51,55 +51,16 @@ function Navbar() {
 
   return (
     <>
-      <div className="bg-gray-800 text-white py-2 w-full">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <h2 className="font-medium text-sm mb-2 md:mb-0">
-              ავტოსკოლა ვარკეთილში
-            </h2>
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-              <div className="flex items-center gap-2">
-                <Phone
-                  size={14}
-                  className="bg-green-600 rounded-full w-5 h-5 p-1"
-                />
-                <a
-                  href="tel:+995574747581"
-                  className="text-xs hover:text-green-300 transition"
-                >
-                  +995 574-747-581
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail
-                  size={14}
-                  className="bg-green-600 rounded-full w-5 h-5 p-1"
-                />
-                <a
-                  href="mailto:Guramdiasamidze123@gmail.com"
-                  className="text-xs hover:text-green-300 transition"
-                >
-                  Guramdiasamidze123@gmail.com
-                </a>
-              </div>
-              <div className="flex items-center gap-2">
-                <LocateIcon
-                  size={14}
-                  className="bg-green-600 rounded-full w-5 h-5 p-1"
-                />
-                <span className="text-xs">ვარკეთილი, ჯავახეთის N 102</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="sticky top-0 z-50 bg-white shadow-sm w-full mb-5">
+      <div className="sticky top-0 z-50 bg-[#4E4B4B] shadow-sm w-full mb-5">
         <nav className="border-b">
           <div className="container mx-auto px-4">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/" className="text-xl font-bold text-red-600">
+            <div className="flex justify-between items-center h-24">
+              <Link
+                href="/road-signs"
+                className="text-xl font-bold text-red-600"
+              >
                 <Image
-                  src={`/image.jpg`}
+                  src={`/logo.png`}
                   alt="car-logo"
                   width={80}
                   height={60}
@@ -114,21 +75,16 @@ function Navbar() {
                 >
                   <div
                     className={cn(
-                      "flex items-center gap-1 px-4 py-2 rounded-lg transition",
+                      "flex items-center gap-1 px-4 py-1 rounded-lg transition",
                       isActive("/")
-                        ? "bg-green-50 text-green-600"
-                        : "hover:bg-gray-100 hover:text-green-500"
+                        ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                        : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
                     )}
                   >
                     <Home size={16} />
                     <Link
                       href="/"
-                      className={cn(
-                        "font-bold",
-                        isActive("/")
-                          ? "text-green-600"
-                          : "hover:text-green-500"
-                      )}
+                      className={cn("font-bold", isActive("/") ? "" : "")}
                     >
                       მთავარი
                     </Link>
@@ -137,31 +93,55 @@ function Navbar() {
                       className={cn(
                         "transition-transform duration-200",
                         isOpen ? "rotate-180" : "rotate-0",
-                        isActive("/") ? "text-green-600" : ""
+                        isActive("/") ? "" : ""
                       )}
                     />
                   </div>
                   {isOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-100 z-50">
+                    <div className="absolute right-0 mt-2 w-48 bg-[#4E4B4B] rounded-md border py-1 z-50">
+                      <Link
+                        href="/videos"
+                        className={cn(
+                          "block px-4 py-1 text-sm font-bold text-black",
+                          isActive("/videos")
+                            ? "text-yellow-400"
+                            : " hover:text-yellow-400"
+                        )}
+                      >
+                        ვიდეოები
+                      </Link>
+                      <Separator className="my-1 bg-gray-700" />
+                      <Link
+                        href="/teachers"
+                        className={cn(
+                          "block px-4 py-1 text-sm font-bold text-black",
+                          isActive("/teachers")
+                            ? "text-yellow-400"
+                            : " hover:text-yellow-400"
+                        )}
+                      >
+                        მასწავლებლები
+                      </Link>
+                      <Separator className="my-1 bg-gray-700" />
                       <Link
                         href="/about-us"
                         className={cn(
-                          "block px-4 py-2 text-sm font-bold text-gray-700",
+                          "block px-4 py-21 text-sm font-bold text-black",
                           isActive("/about-us")
-                            ? "bg-green-50 text-green-600"
-                            : "hover:bg-gray-50 hover:text-green-500"
+                            ? "text-yellow-400"
+                            : " hover:text-yellow-400"
                         )}
                       >
-                        ჩვენ შესახებ
+                        ჩვენს შესახებ
                       </Link>
-                      <Separator className="my-1" />
+                      <Separator className="my-1 bg-gray-700" />
                       <Link
                         href="/contact"
                         className={cn(
-                          "block px-4 py-2 text-sm font-bold text-gray-700",
+                          "block px-4 py-1 text-sm font-bold text-black",
                           isActive("/contact")
-                            ? "bg-green-50 text-green-600"
-                            : "hover:bg-gray-50 hover:text-green-500"
+                            ? " text-yellow-400"
+                            : " hover:text-yellow-400"
                         )}
                       >
                         კონტაქტი
@@ -170,12 +150,23 @@ function Navbar() {
                   )}
                 </div>
                 <Link
+                  href="/road-signs"
+                  className={cn(
+                    "px-4 py-1 font-bold rounded-md transition gap-2",
+                    isActive("/road-signs")
+                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                  )}
+                >
+                  საგზაო ნიშნები
+                </Link>
+                <Link
                   href="/tickets"
                   className={cn(
-                    "px-4 py-2 font-bold rounded-lg transition",
+                    "px-4 py-1 font-bold rounded-lg transition",
                     isActive("/tickets")
-                      ? "bg-green-50 text-green-600"
-                      : "hover:bg-gray-100 hover:text-green-500"
+                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
                   )}
                 >
                   ბილეთები
@@ -183,17 +174,17 @@ function Navbar() {
                 <Link
                   href="/exam"
                   className={cn(
-                    "px-4 py-2 font-bold rounded-lg transition",
+                    "px-4 py-1 font-bold rounded-lg transition",
                     isActive("/exam")
-                      ? "bg-green-50 text-green-600"
-                      : "hover:bg-gray-100 hover:text-green-500"
+                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
                   )}
                 >
                   გამოცდა
                 </Link>
               </div>
               <button
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+                className="md:hidden p-2 rounded-lg hover:bg-yellow-400"
                 onClick={toggleMobileMenu}
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -209,10 +200,10 @@ function Navbar() {
                 <div className="relative">
                   <button
                     className={cn(
-                      "flex items-center gap-1 px-4 py-2 rounded-lg transition w-full",
+                      "flex items-center gap-1 px-4 py-1 rounded-lg transition w-full",
                       isActive("/")
-                        ? "bg-green-50 text-green-600"
-                        : "hover:bg-gray-100 hover:text-green-500"
+                        ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                        : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
                     )}
                     onClick={() => setIsOpen(!isOpen)}
                   >
@@ -223,7 +214,7 @@ function Navbar() {
                       className={cn(
                         "ml-auto transition-transform duration-200",
                         isOpen ? "rotate-180" : "rotate-0",
-                        isActive("/") ? "text-green-600" : ""
+                        isActive("/") ? "" : ""
                       )}
                     />
                   </button>
@@ -234,23 +225,45 @@ function Navbar() {
                     )}
                   >
                     <Link
-                      href="/about-us"
+                      href="/videos"
                       className={cn(
-                        "block px-4 py-2 text-sm font-bold text-gray-700 rounded-lg",
-                        isActive("/about-us")
-                          ? "bg-green-50 text-green-600"
-                          : "hover:bg-gray-100 hover:text-green-500"
+                        "block px-4 py-1 text-sm font-bold text-black",
+                        isActive("/videos")
+                          ? "text-yellow-400"
+                          : " hover:text-yellow-400"
                       )}
                     >
-                      ჩვენ შესახებ
+                      ვიდეოები
+                    </Link>
+                    <Link
+                      href="/teachers"
+                      className={cn(
+                        "block px-4 py-1 text-sm font-bold text-black",
+                        isActive("/teachers")
+                          ? "text-yellow-400"
+                          : " hover:text-yellow-400"
+                      )}
+                    >
+                      მასწავლებლები
+                    </Link>
+                    <Link
+                      href="/about-us"
+                      className={cn(
+                        "block px-4 py-1 text-sm font-bold text-black",
+                        isActive("/about-us")
+                          ? "text-yellow-400"
+                          : " hover:text-yellow-400"
+                      )}
+                    >
+                      ჩვენს შესახებ
                     </Link>
                     <Link
                       href="/contact"
                       className={cn(
-                        "block px-4 py-2 text-sm font-bold text-gray-700 rounded-lg",
+                        "block px-4 py-1 text-sm font-bold text-black",
                         isActive("/contact")
-                          ? "bg-green-50 text-green-600"
-                          : "hover:bg-gray-100 hover:text-green-500"
+                          ? " text-yellow-400"
+                          : " hover:text-yellow-400"
                       )}
                     >
                       კონტაქტი
@@ -258,12 +271,23 @@ function Navbar() {
                   </div>
                 </div>
                 <Link
+                  href="/road-signs"
+                  className={cn(
+                    "px-4 py-1 font-bold rounded-lg transition",
+                    isActive("/road-signs")
+                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                  )}
+                >
+                  საგზაო ნიშნები
+                </Link>
+                <Link
                   href="/tickets"
                   className={cn(
-                    "px-4 py-2 font-bold rounded-lg transition",
+                    "px-4 py-1 font-bold rounded-lg transition",
                     isActive("/tickets")
-                      ? "bg-green-50 text-green-600"
-                      : "hover:bg-gray-100 hover:text-green-500"
+                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
                   )}
                 >
                   ბილეთები
@@ -271,10 +295,10 @@ function Navbar() {
                 <Link
                   href="/exam"
                   className={cn(
-                    "px-4 py-2 font-bold rounded-lg transition",
+                    "px-4 py-1 font-bold rounded-lg transition",
                     isActive("/exam")
-                      ? "bg-green-50 text-green-600"
-                      : "hover:bg-gray-100 hover:text-green-500"
+                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
+                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
                   )}
                 >
                   გამოცდა

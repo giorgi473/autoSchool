@@ -2,8 +2,6 @@ import { Inter } from "next/font/google";
 const inter = Inter({ subsets: ["latin"] });
 
 import "./globals.css";
-import { AppProvider } from "@/app/context/AppContext";
-import LayoutContent from "@/components/LayoutContent";
 
 export const metadata = {
   title: "ვტოსკოლა მართვისმოწმობა",
@@ -18,13 +16,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/logo/logo.jpg" sizes="any" />
+        <link
+          rel="icon"
+          href="/logo/logo.jpg"
+          sizes="any"
+          className="rounded-full"
+        />
       </head>
-      <body className={`${inter.className}`}>
-        <AppProvider>
-          <LayoutContent>{children}</LayoutContent>
-        </AppProvider>
-      </body>
+      <body className={`${inter.className}`}>{children}</body>
     </html>
   );
 }

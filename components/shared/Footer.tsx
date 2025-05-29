@@ -1,190 +1,37 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { LocateIcon, Mail, Phone, ChevronDown, Home } from "lucide-react";
-import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function Footer() {
-  const pathname = usePathname();
-  const [openDropdown, setOpenDropdown] = React.useState<string | null>(null);
-
-  const isActive = (href: string) => pathname === href;
-
-  const navItems = [
-    {
-      href: "/",
-      label: "მთავარი",
-      icon: <Home size={16} />,
-      dropdown: [
-        { href: "/about-us", label: "ჩვენ შესახებ" },
-        { href: "/contact", label: "კონტაქტი" },
-      ],
-    },
-    { href: "/tickets", label: "ბილეთები" },
-    { href: "/exam", label: "გამოცდა" },
-  ];
-
-  const toggleDropdown = (itemLabel: string) => {
-    setOpenDropdown(openDropdown === itemLabel ? null : itemLabel);
-  };
-
-  const description = ` პროფესიონალური მძღოლების მომზადების ცენტრი ვარკეთილში. ჩვენი
-              მიზანია უსაფრთხო და კომპეტენტური მძღოლების მომზადება.`;
-
   return (
-    <footer className="bg-gray-900 text-white pt-12 pb-8 mt-10 border-t border-gray-800">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex flex-col items-center md:grid md:grid-cols-3 md:items-start gap-12 mb-12">
-          <div className="space-y-4 text-center">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-3 justify-center"
-            >
-              <span className="text-2xl font-bold bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
-                ავტოსკოლა
-              </span>
-            </Link>
-            <p className="text-gray-400 text-sm leading-relaxed max-w-md mx-auto">
-              {description}
-            </p>
-          </div>
-          <div className="w-full md:col-span-2">
-            <div className="flex flex-col items-center md:grid md:grid-cols-3 gap-8">
-              <div className="w-full max-w-xs text-center md:text-left">
-                <h3 className="text-lg font-bold mb-4 text-green-400">
-                  ნავიგაცია
-                </h3>
-                <ul className="space-y-3">
-                  {navItems.map((item) => (
-                    <li
-                      key={item.label}
-                      className="flex justify-center md:justify-start"
-                    >
-                      {item.dropdown ? (
-                        <div className="relative w-full max-w-xs">
-                          <button
-                            onClick={() => toggleDropdown(item.label)}
-                            className={cn(
-                              "flex items-center gap-2 w-full justify-center md:justify-start px-4",
-                              "hover:text-green-300 transition-colors",
-                              isActive(item.href) && "text-green-400"
-                            )}
-                          >
-                            {item.icon}
-                            <span>{item.label}</span>
-                            <ChevronDown
-                              size={14}
-                              className={cn(
-                                "ml-auto transition-transform",
-                                openDropdown === item.label && "rotate-180"
-                              )}
-                            />
-                          </button>
-                          {openDropdown === item.label && (
-                            <ul className="mt-2 space-y-2 mx-auto w-48">
-                              {item.dropdown.map((subItem) => (
-                                <li
-                                  key={subItem.href}
-                                  className="text-center md:text-left"
-                                >
-                                  <Link
-                                    href={subItem.href}
-                                    className={cn(
-                                      "block py-1 text-sm hover:text-green-300 px-4",
-                                      isActive(subItem.href) &&
-                                        "text-green-400 font-medium"
-                                    )}
-                                  >
-                                    {subItem.label}
-                                  </Link>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex items-center gap-2 justify-center md:justify-start px-4 hover:text-green-300 transition-colors",
-                            isActive(item.href) && "text-green-400"
-                          )}
-                        >
-                          {item.icon}
-                          <span>{item.label}</span>
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="w-full max-w-xs text-center md:text-left">
-                <h3 className="text-lg font-bold mb-4 text-green-400">
-                  კონტაქტი
-                </h3>
-                <ul className="space-y-3">
-                  <li className="flex flex-col items-center md:items-start gap-1">
-                    <div className="flex items-center gap-2">
-                      <LocateIcon className="w-5 h-5 text-green-400" />
-                      <span className="text-gray-400">
-                        ვარკეთილი, ჯავახეთის N 102
-                      </span>
-                    </div>
-                  </li>
-                  <li className="flex justify-center md:justify-start">
-                    <a
-                      href="tel:+995574747581"
-                      className="flex items-center gap-2 hover:text-green-300 transition-colors"
-                    >
-                      <Phone className="w-5 h-5 text-green-400" />
-                      <span>+995 574-747-581</span>
-                    </a>
-                  </li>
-                  <li className="flex justify-center md:justify-start">
-                    <a
-                      href="mailto:Guramdiasamidze123@gmail.com"
-                      className="flex items-center gap-2 hover:text-green-300 transition-colors"
-                    >
-                      <Mail className="w-5 h-5 text-green-400" />
-                      <span>Guramdiasamidze123@gmail.com</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div className="w-full max-w-xs text-center md:text-left">
-                <h3 className="text-lg font-bold mb-4 text-green-400">
-                  სამუშაო საათები
-                </h3>
-                <ul className="space-y-2 text-gray-400">
-                  <li className="flex justify-between">
-                    <span>ორშაბათი - პარასკევი</span>
-                    <span>09:00 - 18:00</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>შაბათი</span>
-                    <span>10:00 - 15:00</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>კვირა</span>
-                    <span className="text-gray-400">დასვენების დღე</span>
-                  </li>
-                </ul>
-              </div>
+    <footer className="bg-[#4E4B4B] text-white pt-7 pb-5 mt-10 border-t border-gray-800">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12">
+          <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-4">
+            <Image
+              src={"/logo.png"}
+              alt="logo"
+              width={150}
+              height={150}
+              className="w-32 sm:w-48 md:w-64"
+            />
+            <div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl text-yellow-400 mb-3">
+                ავტოსკოლა დრიფტი
+              </h2>
+              <p className="text-lg sm:text-xl md:text-2xl text-[#FEFF00]">
+                აიღე მართვის მოწმობა პირველივე ცდაზე.
+              </p>
             </div>
           </div>
-        </div>
-        <div className="border-t border-gray-800 pt-8">
-          <div className="flex flex-col items-center">
-            <div className="text-center">
-              <p className="text-gray-500 text-sm">
-                © {new Date().getFullYear()} ავტოსკოლა ვარკეთილში. ყველა უფლება
-                დაცულია.
-              </p>
-              <p className="text-gray-600 text-xs mt-1">
-                დამზადებულია საქართველოში
-              </p>
+          <div className="text-center md:text-left">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl text-black mb-3">
+              სამუშაო საათები
+            </h2>
+            <div className="text-gray-900 text-base sm:text-lg">
+              <p>ორშაბათი-პარასკევი - 09:00 - 19:00</p>
+              <p>შაბათი - დაკეტილი</p>
+              <p>კვირა - დაკეტილი</p>
             </div>
           </div>
         </div>

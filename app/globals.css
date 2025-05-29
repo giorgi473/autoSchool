@@ -89,7 +89,7 @@
   background: whitesmoke;
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(#04a006, #22ff73);
+  background: linear-gradient(#dfbe05ec, #ffd207);
   z-index: 50px;
   cursor: pointer;
 }
