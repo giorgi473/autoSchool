@@ -4,15 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import {
-  LocateIcon,
-  Mail,
-  Phone,
-  ChevronDown,
-  Home,
-  Menu,
-  X,
-} from "lucide-react";
+import { ChevronDown, Home, Menu, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -117,7 +109,7 @@ function Navbar() {
                           "block px-4 py-1 text-sm font-bold text-black",
                           isActive("/teachers")
                             ? "text-yellow-400"
-                            : " hover:text-yellow-400"
+                            : "hover:text-yellow-400"
                         )}
                       >
                         მასწავლებლები
@@ -129,7 +121,7 @@ function Navbar() {
                           "block px-4 py-21 text-sm font-bold text-black",
                           isActive("/about-us")
                             ? "text-yellow-400"
-                            : " hover:text-yellow-400"
+                            : "hover:text-yellow-400"
                         )}
                       >
                         ჩვენს შესახებ
@@ -140,8 +132,8 @@ function Navbar() {
                         className={cn(
                           "block px-4 py-1 text-sm font-bold text-black",
                           isActive("/contact")
-                            ? " text-yellow-400"
-                            : " hover:text-yellow-400"
+                            ? "text-yellow-400"
+                            : "hover:text-yellow-400"
                         )}
                       >
                         კონტაქტი
@@ -230,7 +222,7 @@ function Navbar() {
                         "block px-4 py-1 text-sm font-bold text-black",
                         isActive("/videos")
                           ? "text-yellow-400"
-                          : " hover:text-yellow-400"
+                          : "hover:text-yellow-400"
                       )}
                     >
                       ვიდეოები
@@ -241,7 +233,7 @@ function Navbar() {
                         "block px-4 py-1 text-sm font-bold text-black",
                         isActive("/teachers")
                           ? "text-yellow-400"
-                          : " hover:text-yellow-400"
+                          : "hover:text-yellow-400"
                       )}
                     >
                       მასწავლებლები
@@ -252,7 +244,7 @@ function Navbar() {
                         "block px-4 py-1 text-sm font-bold text-black",
                         isActive("/about-us")
                           ? "text-yellow-400"
-                          : " hover:text-yellow-400"
+                          : "hover:text-yellow-400"
                       )}
                     >
                       ჩვენს შესახებ
@@ -262,8 +254,8 @@ function Navbar() {
                       className={cn(
                         "block px-4 py-1 text-sm font-bold text-black",
                         isActive("/contact")
-                          ? " text-yellow-400"
-                          : " hover:text-yellow-400"
+                          ? "text-yellow-400"
+                          : "hover:text-yellow-400"
                       )}
                     >
                       კონტაქტი
