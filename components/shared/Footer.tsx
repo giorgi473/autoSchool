@@ -22,7 +22,6 @@ export function Footer() {
         { href: "/contact", label: "კონტაქტი" },
       ],
     },
-    { href: "/road-signs", label: "საგზაო ნიშნები" },
     { href: "/tickets", label: "ბილეთები" },
     { href: "/exam", label: "გამოცდა" },
   ];
