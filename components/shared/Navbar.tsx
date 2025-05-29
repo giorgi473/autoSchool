@@ -170,17 +170,6 @@ function Navbar() {
                   )}
                 </div>
                 <Link
-                  href="/road-signs"
-                  className={cn(
-                    "px-4 py-2 font-bold rounded-lg transition gap-2",
-                    isActive("/road-signs")
-                      ? "bg-green-50 text-green-600"
-                      : "hover:bg-gray-100 hover:text-green-500"
-                  )}
-                >
-                  საგზაო ნიშნები
-                </Link>
-                <Link
                   href="/tickets"
                   className={cn(
                     "px-4 py-2 font-bold rounded-lg transition",
@@ -268,17 +257,6 @@ function Navbar() {
                     </Link>
                   </div>
                 </div>
-                <Link
-                  href="/road-signs"
-                  className={cn(
-                    "px-4 py-2 font-bold rounded-lg transition",
-                    isActive("/road-signs")
-                      ? "bg-green-50 text-green-600"
-                      : "hover:bg-gray-100 hover:text-green-500"
-                  )}
-                >
-                  საგზაო ნიშნები
-                </Link>
                 <Link
                   href="/tickets"
                   className={cn(
