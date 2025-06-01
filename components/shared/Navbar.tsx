@@ -59,7 +59,7 @@ function Navbar() {
                   className=""
                 />
               </Link>
-              <div className="hidden md:flex items-center justify-between gap-x-9">
+              <div className="hidden md:flex items-center justify-between gap-x-9 text-lg">
                 <div
                   className="relative"
                   onMouseEnter={handleMouseEnter}
@@ -76,7 +76,10 @@ function Navbar() {
                     <Home size={16} />
                     <Link
                       href="/"
-                      className={cn("font-bold", isActive("/") ? "" : "")}
+                      className={cn(
+                        "font-bold text-lg",
+                        isActive("/") ? "" : ""
+                      )}
                     >
                       მთავარი
                     </Link>
@@ -90,11 +93,11 @@ function Navbar() {
                     />
                   </div>
                   {isOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#4E4B4B] rounded-md border py-1 z-50">
+                    <div className="absolute right-0 mt-2 w-48 bg-[#4E4B4B] rounded-md border py-1 z-50 text-lg">
                       <Link
                         href="/videos"
                         className={cn(
-                          "block px-4 py-1 text-sm font-bold text-black",
+                          "block px-4 py-1 font-bold text-black",
                           isActive("/videos")
                             ? "text-yellow-400"
                             : " hover:text-yellow-400"
@@ -106,7 +109,7 @@ function Navbar() {
                       <Link
                         href="/teachers"
                         className={cn(
-                          "block px-4 py-1 text-sm font-bold text-black",
+                          "block px-4 py-1 font-bold text-black",
                           isActive("/teachers")
                             ? "text-yellow-400"
                             : "hover:text-yellow-400"
@@ -118,7 +121,7 @@ function Navbar() {
                       <Link
                         href="/about-us"
                         className={cn(
-                          "block px-4 py-21 text-sm font-bold text-black",
+                          "block px-4 py-21 font-bold text-black",
                           isActive("/about-us")
                             ? "text-yellow-400"
                             : "hover:text-yellow-400"
@@ -130,7 +133,7 @@ function Navbar() {
                       <Link
                         href="/contact"
                         className={cn(
-                          "block px-4 py-1 text-sm font-bold text-black",
+                          "block px-4 py-1 font-bold text-black",
                           isActive("/contact")
                             ? "text-yellow-400"
                             : "hover:text-yellow-400"

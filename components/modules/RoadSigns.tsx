@@ -128,7 +128,7 @@ export default function RoadSigns() {
         {menuItems.map((item, index) => (
           <motion.div
             key={item.id.toString()}
-            className={`font-medium border-2 border-gray-300 flex items-center justify-start text-sm sm:text-base px-2 py-3 rounded-lg cursor-pointer text-center transition-colors duration-300 ${
+            className={`font-medium border-2 border-gray-300 flex items-center justify-start text-lg sm:text-base px-2 py-3 rounded-lg cursor-pointer text-center transition-colors duration-300 ${
               activeCategory === item.category
                 ? "bg-gray-200 text-gray-800 shadow-lg"
                 : "text-black bg-white hover:bg-gray-200"
@@ -171,7 +171,7 @@ export default function RoadSigns() {
               }`}
               variants={cardVariants}
               whileHover={{
-                scale: 1.05,
+                scale: 1.1,
                 boxShadow: "0px 10px 20px rgba(0, 0, 0, 0.15)",
               }}
             >
@@ -189,10 +189,10 @@ export default function RoadSigns() {
                     />
                   </div>
                   <div className="flex flex-col gap-3 w-full">
-                    <h2 className="text-sm font-semibold text-green-600">
+                    <h2 className="text-lg font-semibold text-green-600">
                       {description}
                     </h2>
-                    <p className="text-gray-700 text-sm">{modalDescription}</p>
+                    <p className="text-gray-700 text-md">{modalDescription}</p>
                   </div>
                 </div>
               ) : (
@@ -209,7 +209,7 @@ export default function RoadSigns() {
                       handleImageClick(item, modalImage, modalDescription, id)
                     }
                   />
-                  <p className="text-center text-gray-700 text-sm sm:text-base">
+                  <p className="text-center text-gray-700 text-md lg:text-xl sm:text-base">
                     {description}
                   </p>
                 </>
@@ -237,14 +237,14 @@ export default function RoadSigns() {
                   <Image
                     src={selectedItem.modalImage}
                     alt={selectedItem.item.title}
-                    width={300}
-                    height={300}
+                    width={350}
+                    height={400}
                     className="rounded-md"
                     style={{ objectFit: "contain" }}
                   />
                 </div>
                 <div className="flex flex-col justify-between">
-                  <p className="text-gray-800 text-sm overflow-y-auto h-40">
+                  <p className="text-gray-800 text-lg overflow-y-auto h-40">
                     {selectedItem.modalDescription}
                   </p>
                   <button
@@ -257,7 +257,7 @@ export default function RoadSigns() {
               </div>
             ) : (
               <div className="flex flex-col justify-between">
-                <p className="text-gray-800 text-sm">
+                <p className="text-gray-800 text-lg">
                   {selectedItem.modalDescription}
                 </p>
                 <button
