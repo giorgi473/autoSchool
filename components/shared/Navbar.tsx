@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ChevronDown, Home, Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
@@ -73,9 +73,8 @@ function Navbar() {
                         : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
                     )}
                   >
-                    <Home size={16} />
                     <Link
-                      href="/"
+                      href="https://avtoskola-drift.ge/"
                       className={cn(
                         "font-bold text-lg",
                         isActive("/") ? "" : ""
@@ -95,7 +94,7 @@ function Navbar() {
                   {isOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-[#4E4B4B] rounded-md border py-1 z-50 text-lg">
                       <Link
-                        href="/videos"
+                        href="https://avtoskola-drift.ge/%e1%83%95%e1%83%98%e1%83%93%e1%83%94%e1%83%9d%e1%83%94%e1%83%91%e1%83%98/"
                         className={cn(
                           "block px-4 py-1 font-bold text-black",
                           isActive("/videos")
@@ -107,7 +106,7 @@ function Navbar() {
                       </Link>
                       <Separator className="my-1 bg-gray-700" />
                       <Link
-                        href="/teachers"
+                        href="https://avtoskola-drift.ge/%e1%83%9b%e1%83%90%e1%83%a1%e1%83%ac%e1%83%90%e1%83%95%e1%83%9a%e1%83%94%e1%83%91%e1%83%9a%e1%83%94%e1%83%91%e1%83%98/"
                         className={cn(
                           "block px-4 py-1 font-bold text-black",
                           isActive("/teachers")
@@ -119,7 +118,7 @@ function Navbar() {
                       </Link>
                       <Separator className="my-1 bg-gray-700" />
                       <Link
-                        href="/about-us"
+                        href="https://avtoskola-drift.ge/%e1%83%a9%e1%83%95%e1%83%94%e1%83%9c%e1%83%a1-%e1%83%a8%e1%83%94%e1%83%a1%e1%83%90%e1%83%ae%e1%83%94%e1%83%91/"
                         className={cn(
                           "block px-4 py-21 font-bold text-black",
                           isActive("/about-us")
@@ -131,7 +130,7 @@ function Navbar() {
                       </Link>
                       <Separator className="my-1 bg-gray-700" />
                       <Link
-                        href="/contact"
+                        href="https://avtoskola-drift.ge/%e1%83%a9%e1%83%95%e1%83%94%e1%83%9c%e1%83%a1-%e1%83%a8%e1%83%94%e1%83%a1%e1%83%90%e1%83%ae%e1%83%94%e1%83%91/"
                         className={cn(
                           "block px-4 py-1 font-bold text-black",
                           isActive("/contact")
@@ -202,7 +201,6 @@ function Navbar() {
                     )}
                     onClick={() => setIsOpen(!isOpen)}
                   >
-                    <Home size={16} />
                     <span className="font-bold">მთავარი</span>
                     <ChevronDown
                       size={16}
