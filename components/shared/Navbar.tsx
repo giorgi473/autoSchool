@@ -201,7 +201,14 @@ function Navbar() {
                     )}
                     onClick={() => setIsOpen(!isOpen)}
                   >
-                    <span className="font-bold">მთავარი</span>
+                    <span className="font-bold">
+                      <Link
+                        href={"https://avtoskola-drift.ge/"}
+                        className="text-lg"
+                      >
+                        მთავარი
+                      </Link>
+                    </span>
                     <ChevronDown
                       size={16}
                       className={cn(
@@ -218,9 +225,9 @@ function Navbar() {
                     )}
                   >
                     <Link
-                      href="/videos"
+                      href="https://avtoskola-drift.ge/%e1%83%95%e1%83%98%e1%83%93%e1%83%94%e1%83%9d%e1%83%94%e1%83%91%e1%83%98/"
                       className={cn(
-                        "block px-4 py-1 text-sm font-bold text-black",
+                        "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/videos")
                           ? "text-yellow-400"
                           : "hover:text-yellow-400"
@@ -229,9 +236,9 @@ function Navbar() {
                       ვიდეოები
                     </Link>
                     <Link
-                      href="/teachers"
+                      href="https://avtoskola-drift.ge/%e1%83%95%e1%83%98%e1%83%93%e1%83%94%e1%83%9d%e1%83%94%e1%83%91%e1%83%98/"
                       className={cn(
-                        "block px-4 py-1 text-sm font-bold text-black",
+                        "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/teachers")
                           ? "text-yellow-400"
                           : "hover:text-yellow-400"
@@ -240,9 +247,9 @@ function Navbar() {
                       მასწავლებლები
                     </Link>
                     <Link
-                      href="/about-us"
+                      href="https://avtoskola-drift.ge/%e1%83%a9%e1%83%95%e1%83%94%e1%83%9c%e1%83%a1-%e1%83%a8%e1%83%94%e1%83%a1%e1%83%90%e1%83%ae%e1%83%94%e1%83%91/"
                       className={cn(
-                        "block px-4 py-1 text-sm font-bold text-black",
+                        "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/about-us")
                           ? "text-yellow-400"
                           : "hover:text-yellow-400"
@@ -251,9 +258,9 @@ function Navbar() {
                       ჩვენს შესახებ
                     </Link>
                     <Link
-                      href="/contact"
+                      href="https://avtoskola-drift.ge/%e1%83%99%e1%83%9d%e1%83%9c%e1%83%a2%e1%83%90%e1%83%a5%e1%83%a2%e1%83%98/"
                       className={cn(
-                        "block px-4 py-1 text-sm font-bold text-black",
+                        "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/contact")
                           ? "text-yellow-400"
                           : "hover:text-yellow-400"
