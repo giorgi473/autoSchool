@@ -1,5 +1,5 @@
 import RoadSignsPage from "@/components/modules/RoadSignsPage";
-import { Footer } from "@/components/shared/Footer";
+import Footer from "@/components/shared/Footer";
 import Navbar from "@/components/shared/Navbar";
 
 function page() {

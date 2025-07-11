@@ -43,18 +43,15 @@ function Navbar() {
 
   return (
     <>
-      <div className="sticky top-0 z-50 bg-[#4E4B4B] shadow-sm w-full mb-5">
+      <div className="sticky top-0 z-50 bg-white shadow-sm w-full mb-5">
         <nav className="border-b">
           <div className="container mx-auto px-4">
             <div className="flex justify-between items-center h-24">
-              <Link
-                href="/road-signs"
-                className="text-xl font-bold text-red-600"
-              >
+              <Link href="/tickets" className="text-xl font-bold text-red-600">
                 <Image
-                  src={`/logo.png`}
+                  src={`/LogoAvto.png`}
                   alt="car-logo"
-                  width={80}
+                  width={90}
                   height={60}
                   className=""
                 />
@@ -68,13 +65,11 @@ function Navbar() {
                   <div
                     className={cn(
                       "flex items-center gap-1 px-4 py-1 rounded-lg transition",
-                      isActive("/")
-                        ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                        : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                      isActive("/") ? "text-red-500" : "hover:text-red-500"
                     )}
                   >
                     <Link
-                      href="https://avtoskola-drift.ge/"
+                      href="/"
                       className={cn(
                         "font-bold text-lg",
                         isActive("/") ? "" : ""
@@ -92,50 +87,50 @@ function Navbar() {
                     />
                   </div>
                   {isOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-[#4E4B4B] rounded-md border py-1 z-50 text-lg">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 text-lg">
                       <Link
-                        href="https://avtoskola-drift.ge/%e1%83%95%e1%83%98%e1%83%93%e1%83%94%e1%83%9d%e1%83%94%e1%83%91%e1%83%98/"
+                        href="/videos"
                         className={cn(
                           "block px-4 py-1 font-bold text-black",
                           isActive("/videos")
-                            ? "text-yellow-400"
-                            : " hover:text-yellow-400"
+                            ? "text-red-500"
+                            : "hover:text-red-500"
                         )}
                       >
                         ვიდეოები
                       </Link>
-                      <Separator className="my-1 bg-gray-700" />
+                      <Separator className="my-1" />
                       <Link
-                        href="https://avtoskola-drift.ge/%e1%83%9b%e1%83%90%e1%83%a1%e1%83%ac%e1%83%90%e1%83%95%e1%83%9a%e1%83%94%e1%83%91%e1%83%9a%e1%83%94%e1%83%91%e1%83%98/"
+                        href="/teachers"
                         className={cn(
                           "block px-4 py-1 font-bold text-black",
                           isActive("/teachers")
-                            ? "text-yellow-400"
-                            : "hover:text-yellow-400"
+                            ? "text-red-500"
+                            : "hover:text-red-500"
                         )}
                       >
                         მასწავლებლები
                       </Link>
-                      <Separator className="my-1 bg-gray-700" />
+                      <Separator className="my-1" />
                       <Link
-                        href="https://avtoskola-drift.ge/%e1%83%a9%e1%83%95%e1%83%94%e1%83%9c%e1%83%a1-%e1%83%a8%e1%83%94%e1%83%a1%e1%83%90%e1%83%ae%e1%83%94%e1%83%91/"
+                        href="/about-us"
                         className={cn(
                           "block px-4 py-21 font-bold text-black",
                           isActive("/about-us")
-                            ? "text-yellow-400"
-                            : "hover:text-yellow-400"
+                            ? "text-red-500"
+                            : "hover:text-red-500"
                         )}
                       >
                         ჩვენს შესახებ
                       </Link>
-                      <Separator className="my-1 bg-gray-700" />
+                      <Separator className="my-1" />
                       <Link
-                        href="https://avtoskola-drift.ge/%e1%83%a9%e1%83%95%e1%83%94%e1%83%9c%e1%83%a1-%e1%83%a8%e1%83%94%e1%83%a1%e1%83%90%e1%83%ae%e1%83%94%e1%83%91/"
+                        href="/contact"
                         className={cn(
                           "block px-4 py-1 font-bold text-black",
                           isActive("/contact")
-                            ? "text-yellow-400"
-                            : "hover:text-yellow-400"
+                            ? "text-red-500"
+                            : "hover:text-red-500"
                         )}
                       >
                         კონტაქტი
@@ -148,8 +143,8 @@ function Navbar() {
                   className={cn(
                     "px-4 py-1 font-bold rounded-md transition gap-2",
                     isActive("/road-signs")
-                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                      ? "text-red-500"
+                      : "hover:text-red-500"
                   )}
                 >
                   საგზაო ნიშნები
@@ -158,9 +153,7 @@ function Navbar() {
                   href="/tickets"
                   className={cn(
                     "px-4 py-1 font-bold rounded-lg transition",
-                    isActive("/tickets")
-                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                    isActive("/tickets") ? "text-red-500" : "hover:text-red-500"
                   )}
                 >
                   ბილეთები
@@ -169,16 +162,14 @@ function Navbar() {
                   href="/exam"
                   className={cn(
                     "px-4 py-1 font-bold rounded-lg transition",
-                    isActive("/exam")
-                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                    isActive("/exam") ? "text-red-500" : "hover:text-red-500"
                   )}
                 >
                   გამოცდა
                 </Link>
               </div>
               <button
-                className="md:hidden p-2 rounded-lg hover:bg-yellow-400"
+                className="md:hidden p-2 rounded-lg hover:bg-red-400"
                 onClick={toggleMobileMenu}
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -195,17 +186,12 @@ function Navbar() {
                   <button
                     className={cn(
                       "flex items-center gap-1 px-4 py-1 rounded-lg transition w-full",
-                      isActive("/")
-                        ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                        : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                      isActive("/") ? "text-red-500" : "hover:text-red-500"
                     )}
                     onClick={() => setIsOpen(!isOpen)}
                   >
                     <span className="font-bold">
-                      <Link
-                        href={"https://avtoskola-drift.ge/"}
-                        className="text-lg"
-                      >
+                      <Link href={"/"} className="text-lg">
                         მთავარი
                       </Link>
                     </span>
@@ -225,45 +211,45 @@ function Navbar() {
                     )}
                   >
                     <Link
-                      href="https://avtoskola-drift.ge/%e1%83%95%e1%83%98%e1%83%93%e1%83%94%e1%83%9d%e1%83%94%e1%83%91%e1%83%98/"
+                      href="/videos"
                       className={cn(
                         "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/videos")
-                          ? "text-yellow-400"
-                          : "hover:text-yellow-400"
+                          ? "text-red-500"
+                          : "hover:text-red-500"
                       )}
                     >
                       ვიდეოები
                     </Link>
                     <Link
-                      href="https://avtoskola-drift.ge/%e1%83%95%e1%83%98%e1%83%93%e1%83%94%e1%83%9d%e1%83%94%e1%83%91%e1%83%98/"
+                      href="/teachers"
                       className={cn(
                         "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/teachers")
-                          ? "text-yellow-400"
-                          : "hover:text-yellow-400"
+                          ? "text-red-500"
+                          : "hover:text-red-500"
                       )}
                     >
                       მასწავლებლები
                     </Link>
                     <Link
-                      href="https://avtoskola-drift.ge/%e1%83%a9%e1%83%95%e1%83%94%e1%83%9c%e1%83%a1-%e1%83%a8%e1%83%94%e1%83%a1%e1%83%90%e1%83%ae%e1%83%94%e1%83%91/"
+                      href="/about-us"
                       className={cn(
                         "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/about-us")
-                          ? "text-yellow-400"
-                          : "hover:text-yellow-400"
+                          ? "text-red-500"
+                          : "hover:text-red-500"
                       )}
                     >
                       ჩვენს შესახებ
                     </Link>
                     <Link
-                      href="https://avtoskola-drift.ge/%e1%83%99%e1%83%9d%e1%83%9c%e1%83%a2%e1%83%90%e1%83%a5%e1%83%a2%e1%83%98/"
+                      href="/contact"
                       className={cn(
                         "block px-4 py-1 text-lg font-bold text-black",
                         isActive("/contact")
-                          ? "text-yellow-400"
-                          : "hover:text-yellow-400"
+                          ? "text-red-500"
+                          : "hover:text-red-500"
                       )}
                     >
                       კონტაქტი
@@ -275,8 +261,8 @@ function Navbar() {
                   className={cn(
                     "px-4 py-1 font-bold rounded-lg transition",
                     isActive("/road-signs")
-                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                      ? "text-red-500"
+                      : "hover:text-red-500"
                   )}
                 >
                   საგზაო ნიშნები
@@ -285,9 +271,7 @@ function Navbar() {
                   href="/tickets"
                   className={cn(
                     "px-4 py-1 font-bold rounded-lg transition",
-                    isActive("/tickets")
-                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                    isActive("/tickets") ? "text-red-500" : "hover:text-red-500"
                   )}
                 >
                   ბილეთები
@@ -296,9 +280,7 @@ function Navbar() {
                   href="/exam"
                   className={cn(
                     "px-4 py-1 font-bold rounded-lg transition",
-                    isActive("/exam")
-                      ? "bg-[#4E4B4B] text-yellow-400 ring-2 ring-yellow-400"
-                      : "hover:bg-[#4E4B4B] hover:text-yellow-400 hover:right-2 hover:ring-yellow-400"
+                    isActive("/exam") ? "text-red-500" : "hover:text-red-500"
                   )}
                 >
                   გამოცდა

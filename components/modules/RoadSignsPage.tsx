@@ -55,7 +55,7 @@ const roadSignsContainerVariants: Variants = {
 export default function RoadSignsPage() {
   return (
     <motion.div
-      className="min-h-screen flex flex-col items-center justify-start px-4 pt-2 sm:px-6 sm:pt-5"
+      className="min-h-screen flex flex-col items-center justify-start px-4 pt-2 sm:px-6 sm:pt-5 mb-20"
       variants={pageVariants}
       initial="hidden"
       animate="visible"

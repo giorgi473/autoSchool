@@ -18,7 +18,7 @@ export default function RootLayout({
       <head>
         <link
           rel="icon"
-          href="/logo/logo.jpg"
+          href="/LogoAvto.png"
           sizes="any"
           className="rounded-full"
         />
